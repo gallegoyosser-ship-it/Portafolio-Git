@@ -1,0 +1,551 @@
+:root {
+    --sidebar-bg: #FFFFFF;
+    --main-bg: #0F1F38;
+    --primary-blue: #1E3A8A;
+    --text-main: #1E293B;
+    --text-light: #64748B;
+    --radius: 12px;
+}
+
+*, *::before, *::after {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+    font-family: 'Inter', sans-serif;
+}
+
+html, body {
+    width: 100%;
+    max-width: 100%;
+    overflow-x: hidden !important; /* Previene completamente el desplazamiento u horquillado horizontal en celulares */
+    background-color: var(--main-bg);
+    color: #FFF;
+}
+
+/* ==========================================
+   PANTALLAS DE CARGA Y BIENVENIDA
+   ========================================== */
+.splash-screen-container, .welcome-screen-container {
+    position: fixed;
+    top: 0; left: 0; width: 100vw; height: 100vh;
+    background-color: #0d1b32;
+    background-image: url('logo.png');
+    background-size: cover;
+    background-position: center;
+    background-repeat: no-repeat;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    z-index: 3000;
+    color: white;
+    text-align: center;
+    padding: 1rem;
+}
+
+.splash-screen-container::before, .welcome-screen-container::before {
+    content: "";
+    position: absolute;
+    top: 0; left: 0; width: 100%; height: 100%;
+    background: #0d1b32;
+    opacity: 0.15;
+    z-index: 1;
+    animation: shadowDarken 5s ease forwards;
+}
+
+.loading-center-content {
+    position: relative;
+    z-index: 2;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    animation: fadeInScale 0.8s ease-in-out;
+    max-width: 90%;
+}
+
+.welcome-screen-container h2 {
+    font-size: clamp(1.5rem, 4vw, 2.2rem);
+    font-weight: 700;
+    color: #FFFFFF;
+    letter-spacing: -0.5px;
+    margin-bottom: 1.5rem;
+    text-shadow: 0 4px 20px rgba(0,0,0,0.8);
+}
+
+.loading-ring-container {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+.loader-ring {
+    display: inline-block;
+    position: relative;
+    width: 50px;
+    height: 50px;
+}
+
+.loader-ring div {
+    box-sizing: border-box;
+    display: block;
+    position: absolute;
+    width: 42px;
+    height: 42px;
+    margin: 4px;
+    border: 4px solid #60A5FA;
+    border-radius: 50%;
+    animation: loader-ring-anim 1.2s cubic-bezier(0.5, 0, 0.5, 1) infinite;
+    border-color: #60A5FA transparent transparent transparent;
+}
+
+.loader-ring div:nth-child(1) { animation-delay: -0.45s; }
+.loader-ring div:nth-child(2) { animation-delay: -0.3s; }
+.loader-ring div:nth-child(3) { animation-delay: -0.15s; }
+
+@keyframes loader-ring-anim {
+    0% { transform: rotate(0deg); }
+    100% { transform: rotate(360deg); }
+}
+
+@keyframes fadeInScale {
+    from { opacity: 0; transform: scale(0.97); }
+    to { opacity: 1; transform: scale(1); }
+}
+
+@keyframes shadowDarken {
+    0% { opacity: 0.15; }
+    100% { opacity: 0.82; }
+}
+
+/* ==========================================
+   INTERFAZ DE LOGIN / REGISTRO
+   ========================================== */
+.google-auth-container {
+    position: fixed;
+    top: 0; left: 0; width: 100vw; height: 100vh;
+    background: radial-gradient(circle at center, #1b315e, #0a1424);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    z-index: 2000;
+    padding: 1rem;
+}
+
+.google-auth-box {
+    background: #FFFFFF;
+    border: 1px solid #CBD5E1;
+    padding: 2.5rem 2rem;
+    border-radius: 16px;
+    width: 100%;
+    max-width: 440px;
+    box-shadow: 0 20px 40px rgba(0, 0, 0, 0.3);
+    color: #1E293B;
+    animation: fadeInScale 0.5s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.google-logo-header {
+    text-align: center;
+    margin-bottom: 2rem;
+}
+
+.google-logo-header img {
+    width: 75px;
+    height: auto;
+    margin-bottom: 0.75rem;
+}
+
+.google-logo-header span {
+    font-size: 1.6rem;
+    font-weight: 700;
+    color: #0F1F38;
+    display: block;
+    letter-spacing: -0.5px;
+}
+
+.google-logo-header p {
+    color: #64748B;
+    font-size: 0.95rem;
+    margin-top: 0.35rem;
+}
+
+.google-input-group {
+    margin-bottom: 1.25rem;
+}
+
+.google-input-group input {
+    width: 100%;
+    padding: 14px 16px;
+    border: 1.5px solid #CBD5E1;
+    border-radius: 8px;
+    font-size: 1rem;
+    outline: none;
+    background-color: #F8FAFC;
+    color: #1E293B;
+    transition: all 0.2s ease;
+}
+
+.google-input-group input:focus {
+    border-color: #1E3A8A;
+    background-color: #FFFFFF;
+    box-shadow: 0 0 0 3px rgba(30, 58, 138, 0.15);
+}
+
+.auth-actions {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-top: 2rem;
+    gap: 1rem;
+}
+
+.btn-google-primary {
+    background-color: #1E3A8A;
+    color: white;
+    border: none;
+    padding: 12px 28px;
+    border-radius: 8px;
+    font-weight: 600;
+    cursor: pointer;
+    font-size: 0.95rem;
+    transition: background-color 0.2s;
+}
+
+.btn-google-primary:hover {
+    background-color: #1d4ed8;
+}
+
+.btn-text {
+    background: none;
+    border: none;
+    color: #1E3A8A;
+    font-weight: 600;
+    cursor: pointer;
+    font-size: 0.95rem;
+    padding: 0.5rem 0;
+    transition: color 0.2s;
+}
+
+.btn-text:hover {
+    color: #1d4ed8;
+    text-decoration: underline;
+}
+
+/* ==========================================
+   LAYOUT PRINCIPAL (Escritorio)
+   ========================================== */
+.app-layout {
+    display: grid;
+    grid-template-columns: 280px 1fr;
+    min-height: 100vh;
+    width: 100%;
+    max-width: 100%;
+}
+
+.sidebar {
+    background-color: var(--sidebar-bg);
+    color: var(--text-main);
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    padding: 2rem 1.5rem;
+    border-right: 1px solid #E2E8F0;
+    height: 100vh;
+    position: sticky;
+    top: 0;
+}
+
+.logo-container {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    margin-bottom: 2rem;
+}
+
+.brand-title {
+    font-weight: 700;
+    font-size: 1.2rem;
+    display: block;
+    color: var(--primary-blue);
+}
+
+.brand-subtitle {
+    font-size: 0.7rem;
+    color: var(--text-light);
+}
+
+.side-nav {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+    flex: 1;
+}
+
+.nav-item {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    padding: 0.75rem 1rem;
+    color: var(--text-light);
+    text-decoration: none;
+    font-weight: 500;
+    border-radius: 8px;
+    transition: all 0.2s;
+    width: 100%;
+}
+
+.nav-item:hover, .nav-item.active {
+    background-color: #EEF2FF;
+    color: var(--primary-blue);
+}
+
+.main-content {
+    padding: 2.5rem;
+    overflow-y: auto;
+    background: radial-gradient(circle at top right, #1E293B, #0F1F38);
+    width: 100%;
+    max-width: 100%;
+}
+
+.content-section {
+    display: none;
+    width: 100%;
+}
+
+.content-section.active {
+    display: block;
+}
+
+.hero-header {
+    text-align: center;
+    margin-bottom: 2rem;
+}
+
+.hero-header h2 {
+    font-size: clamp(1.4rem, 3vw, 2rem);
+    margin-bottom: 0.5rem;
+    color: #FFF;
+    word-wrap: break-word;
+}
+
+.location-filter-box {
+    background: rgba(255, 255, 255, 0.1);
+    padding: 0.75rem;
+    border-radius: 10px;
+    display: inline-block;
+    color: white;
+    max-width: 100%;
+}
+
+.location-filter-box select {
+    background: white;
+    color: #1E293B;
+    max-width: 100%;
+    padding: 0.4rem;
+}
+
+.search-box {
+    max-width: 600px;
+    width: 100%;
+    margin: 0 auto;
+    background: #FFF;
+    display: flex;
+    align-items: center;
+    padding: 0.75rem 1.25rem;
+    border-radius: 50px;
+    gap: 1rem;
+    color: var(--text-light);
+    box-shadow: 0 4px 20px rgba(0,0,0,0.2);
+}
+
+.search-box input {
+    border: none;
+    outline: none;
+    width: 100%;
+    font-size: 1rem;
+    background: transparent;
+}
+
+.filter-pills {
+    display: flex;
+    justify-content: center;
+    gap: 0.5rem;
+    margin-bottom: 2.5rem;
+    flex-wrap: wrap;
+}
+
+.pill {
+    background: rgba(255,255,255,0.1);
+    border: 1px solid rgba(255,255,255,0.2);
+    color: white;
+    padding: 0.5rem 1.25rem;
+    border-radius: 20px;
+    cursor: pointer;
+    font-weight: 500;
+    transition: all 0.2s;
+}
+
+.pill:hover, .pill.active {
+    background: #FFF;
+    color: var(--primary-blue);
+}
+
+.cards-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+    gap: 1.5rem;
+    width: 100%;
+}
+
+.card {
+    background: #FFFFFF;
+    color: var(--text-main);
+    padding: 1.5rem;
+    border-radius: var(--radius);
+    box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    width: 100%;
+    word-break: break-word;
+    overflow: hidden;
+}
+
+.card-tag {
+    font-size: 0.75rem;
+    font-weight: 600;
+    color: var(--primary-blue);
+    background: #EEF2FF;
+    padding: 0.25rem 0.5rem;
+    border-radius: 4px;
+    width: fit-content;
+    max-width: 100%;
+}
+
+.card h3 {
+    font-size: 1.1rem;
+    margin-bottom: 0.5rem;
+    word-wrap: break-word;
+}
+
+.card p {
+    font-size: 0.9rem;
+    color: var(--text-light);
+    margin-bottom: 0.5rem;
+    word-wrap: break-word;
+}
+
+.badge-abierta { background: #DCFCE7; color: #166534; padding: 0.25rem 0.5rem; border-radius: 4px; font-size: 0.75rem; font-weight: 600; width: fit-content; }
+.badge-pendiente { background: #FEF9C3; color: #854D0E; padding: 0.25rem 0.5rem; border-radius: 4px; font-size: 0.75rem; font-weight: 600; width: fit-content; }
+
+.btn-card {
+    background: var(--primary-blue);
+    color: white;
+    border: none;
+    padding: 0.6rem 1rem;
+    border-radius: 6px;
+    cursor: pointer;
+    font-weight: 500;
+    width: 100%;
+    text-align: center;
+    box-sizing: border-box;
+}
+
+.info-content-box {
+    max-width: 700px;
+    width: 100%;
+    margin: 0 auto;
+    background: #FFFFFF;
+    color: var(--text-main);
+    padding: 2rem;
+    border-radius: var(--radius);
+    word-wrap: break-word;
+}
+
+/* ==========================================
+   MAQUETADO DE NAVEGACIÓN Y ESTRUCTURA EN MÓVIL (CORRECCIÓN TOTAL)
+   ========================================== */
+@media (max-width: 900px) {
+    .app-layout {
+        display: flex;
+        flex-direction: column;
+        width: 100%;
+        max-width: 100vw;
+        overflow-x: hidden;
+    }
+
+    .sidebar {
+        width: 100%;
+        height: auto;
+        position: relative;
+        border-right: none;
+        border-bottom: 2px solid #E2E8F0;
+        padding: 1rem 0.75rem;
+        background-color: #FFFFFF;
+        box-shadow: 0 4px 10px rgba(0, 0, 0, 0.05);
+    }
+
+    .logo-container {
+        margin-bottom: 0.75rem;
+        justify-content: center;
+    }
+
+    /* Forzar los botones de navegación a ser una lista vertical limpia y 100% simétrica */
+    .side-nav {
+        display: flex;
+        flex-direction: column;
+        gap: 0.4rem;
+        width: 100%;
+    }
+
+    .nav-item {
+        width: 100% !important; /* Evita que el botón activo cambie de ancho */
+        padding: 0.75rem 1rem;
+        font-size: 0.9rem;
+        justify-content: flex-start;
+        text-align: left;
+        background-color: #F8FAFC;
+        border: 1px solid #E2E8F0;
+        border-radius: 8px;
+        box-sizing: border-box;
+    }
+
+    .nav-item.active {
+        background-color: #EEF2FF !important;
+        color: var(--primary-blue) !important;
+        border-color: #93C5FD !important;
+        font-weight: 600;
+    }
+
+    .sidebar-footer {
+        display: none;
+    }
+
+    .main-content {
+        padding: 1.25rem 0.75rem;
+        width: 100%;
+        max-width: 100vw;
+        box-sizing: border-box;
+    }
+
+    .cards-grid {
+        grid-template-columns: 1fr; /* Tarjetas en 1 sola columna vertical perfecta */
+        gap: 1rem;
+        width: 100%;
+    }
+
+    .google-auth-box {
+        padding: 1.5rem 1rem;
+        max-width: 100%;
+    }
+
+    .auth-actions {
+        flex-direction: column-reverse;
+        align-items: stretch;
+        gap: 0.75rem;
+    }
+
+    .btn-google-primary, .btn-text {
+        width: 100%;
+        text-align: center;
+    }
+}

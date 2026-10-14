@@ -1,0 +1,162 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Altiora Edu - Educación Superior en Colombia</title>
+    <link rel="stylesheet" href="style.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400,500,600,700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+</head>
+<body>
+
+    <!-- PANTALLA DE CARGA INICIAL (Logo a pantalla completa con sombreado animado) -->
+    <div id="screen-loading" class="splash-screen-container">
+        <div class="loading-center-content">
+            <div class="loading-ring-container">
+                <div class="loader-ring"><div></div><div></div><div></div><div></div></div>
+            </div>
+        </div>
+    </div>
+
+    <!-- PANTALLA DE BIENVENIDA SUTIL (5 segundos con nombre de usuario) -->
+    <div id="screen-welcome" class="welcome-screen-container" style="display: none;">
+        <div class="loading-center-content">
+            <h2 id="welcomeUserText">¡Bienvenido(a)!</h2>
+            <div class="loading-ring-container">
+                <div class="loader-ring"><div></div><div></div><div></div><div></div></div>
+            </div>
+        </div>
+    </div>
+
+    <!-- PANTALLA DE LOGIN / REGISTRO ESTILO GOOGLE -->
+    <div id="screen-auth" class="google-auth-container" style="display: none;">
+        <div class="google-auth-box">
+            <div class="google-logo-header">
+                <img src="logo.png" alt="Logo" style="width: 80px; margin-bottom: 0.5rem;">
+                <span id="auth-title">Te damos la bienvenida</span>
+                <p id="auth-subtitle">Usa tu cuenta de Altiora Edu</p>
+            </div>
+
+            <form id="authForm" onsubmit="procesarAutenticacion(event)">
+                <div id="nombreField" class="google-input-group" style="display: none;">
+                    <input type="text" id="regNombre" name="given-name" autocomplete="given-name" placeholder="Nombre completo">
+                </div>
+                <div class="google-input-group">
+                    <input type="email" id="authEmail" name="email" autocomplete="email" placeholder="Correo electrónico" required>
+                </div>
+                <div class="google-input-group">
+                    <input type="password" id="authPassword" name="password" autocomplete="current-password" placeholder="Contraseña" required>
+                </div>
+
+                <div class="auth-actions">
+                    <button type="button" class="btn-text" id="toggleAuthMode" onclick="cambiarModoAuth()">Crear cuenta</button>
+                    <button type="submit" class="btn-google-primary" id="authSubmitBtn">Siguiente</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- APLICACIÓN PRINCIPAL -->
+    <div id="app-container" class="app-layout" style="display: none;">
+        <aside class="sidebar">
+            <div class="logo-container">
+                <div class="logo-icon-box">
+                    <img src="logo.png" alt="Logo" style="width: 40px; border-radius: 50%;">
+                </div>
+                <div class="logo-text">
+                    <span class="brand-title">Altiora Edu</span>
+                    <span class="brand-subtitle" id="userGreeting">Usuario</span>
+                </div>
+            </div>
+
+            <nav class="side-nav">
+                <a href="#programas" class="nav-item active" data-target="programas"><i class="fa-solid fa-book-open"></i> Oferta Educativa</a>
+                <a href="#postulaciones" class="nav-item" data-target="postulaciones"><i class="fa-solid fa-clipboard-list"></i> Mis Postulaciones</a>
+                <a href="#convocatorias" class="nav-item" data-target="convocatorias"><i class="fa-solid fa-globe"></i> Universidades & Politécnicos</a>
+                <a href="#informacion" class="nav-item" data-target="informacion"><i class="fa-solid fa-circle-info"></i> Información general</a>
+            </nav>
+
+            <div class="sidebar-footer">
+                <a href="#" class="nav-item" onclick="cerrarSesion()"><i class="fa-solid fa-arrow-right-from-bracket"></i> Cerrar Sesión</a>
+            </div>
+        </aside>
+
+        <main class="main-content">
+            <section id="section-programas" class="content-section active">
+                <div class="hero-header">
+                    <h2>Oferta Educativa y Convocatorias por Región</h2>
+                    <p style="margin-bottom: 1.5rem; color: #94A3B8;">Selecciona tu ciudad o municipio para ver instituciones universitarias, técnicas y tecnológicas.</p>
+                    
+                    <div class="location-filter-box" style="margin-bottom: 1.5rem;">
+                        <label for="ubicacionSelect" style="font-weight: 600; margin-right: 0.5rem;"><i class="fa-solid fa-location-dot"></i> Selecciona tu ubicación:</label>
+                        <select id="ubicacionSelect" onchange="filtrarPorUbicacion()" style="padding: 0.5rem 1rem; border-radius: 8px; border: 1px solid #CBD5E1; font-weight: 500; outline: none;">
+                            <option value="todos">Toda Colombia (Nacional)</option>
+                            <option value="Medellín">Medellín y Área Metropolitana</option>
+                            <option value="Bogotá">Bogotá D.C.</option>
+                            <option value="Cali">Cali / Valle del Cauca</option>
+                            <option value="Pereira">Pereira / Eje Cafetero</option>
+                        </select>
+                    </div>
+
+                    <div class="search-box">
+                        <i class="fa-solid fa-magnifying-glass"></i>
+                        <input type="text" id="searchInput" placeholder="Busca por carrera o institución...">
+                    </div>
+                </div>
+
+                <div class="filter-pills">
+                    <button class="pill active" data-filter="todos">Todas</button>
+                    <button class="pill" data-filter="Abierta">Convocatorias Abiertas</button>
+                    <button class="pill" data-filter="Próxima">Próximas Aperturas</button>
+                </div>
+
+                <div class="cards-grid" id="programasGrid"></div>
+            </section>
+
+            <section id="section-postulaciones" class="content-section">
+                <div class="hero-header">
+                    <h2>Mis Postulaciones y Formularios Oficiales</h2>
+                    <p>Instituciones y programas guardados con enlace directo al formulario institucional.</p>
+                </div>
+                <div class="cards-grid" id="misPostulacionesGrid"></div>
+            </section>
+
+            <section id="section-convocatorias" class="content-section">
+                <div class="hero-header"><h2>Universidades, Instituciones Universitarias y Politécnicos</h2></div>
+                <div class="cards-grid">
+                    <div class="card">
+                        <span class="card-tag">Medellín / Antioquia</span>
+                        <h3>ITM (Inst. Tecnológico Metropolitano)</h3>
+                        <p>Institución Universitaria pública.</p>
+                        <a href="https://www.itm.edu.co" target="_blank" class="btn-card" style="text-align:center; text-decoration:none; display:block; margin-top:1rem;">Sitio Oficial</a>
+                    </div>
+                    <div class="card">
+                        <span class="card-tag">Medellín / Antioquia</span>
+                        <h3>Universidad de Antioquia (UdeA)</h3>
+                        <p>Universidad Pública Departamental.</p>
+                        <a href="https://www.udea.edu.co" target="_blank" class="btn-card" style="text-align:center; text-decoration:none; display:block; margin-top:1rem;">Sitio Oficial</a>
+                    </div>
+                    <div class="card">
+                        <span class="card-tag">Medellín / Nacional</span>
+                        <h3>Universidad EAFIT</h3>
+                        <p>Universidad Privada / Becas Sapiencia.</p>
+                        <a href="https://www.eafit.edu.co" target="_blank" class="btn-card" style="text-align:center; text-decoration:none; display:block; margin-top:1rem;">Sitio Oficial</a>
+                    </div>
+                    <div class="card">
+                        <span class="card-tag">Bogotá / Nacional</span>
+                        <h3>Universidad Nacional de Colombia</h3>
+                        <p>Universidad Pública Nacional.</p>
+                        <a href="https://admisiones.unal.edu.co" target="_blank" class="btn-card" style="text-align:center; text-decoration:none; display:block; margin-top:1rem;">Sitio Oficial</a>
+                    </div>
+                </div>
+            </section>
+
+            <section id="section-informacion" class="content-section"><div class="info-content-box"><h2>Información General</h2><p>Plataforma para consultar oferta educativa regional en Colombia.</p></div></section>
+            <section id="section-ajustes" class="content-section"><div class="info-content-box"><h2>Ajustes</h2><p>Preferencias de usuario.</p></div></section>
+        </main>
+    </div>
+
+    <script src="altiora.js"></script>
+</body>
+</html>

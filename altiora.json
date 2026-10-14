@@ -1,0 +1,52 @@
+{
+  "programas": [
+    {
+      "id": 1,
+      "titulo": "Tecnología en Desarrollo de Software",
+      "institucion": "ITM (Inst. Tecnológico Metropolitano)",
+      "tipo": "Tecnología",
+      "ciudad": "Medellín",
+      "descripcion": "Programación backend, frontend, bases de datos y soporte técnico.",
+      "apertura": "1 de Octubre de 2026",
+      "cierre": "30 de Noviembre de 2026",
+      "estado": "Abierta",
+      "linkFormulario": "https://www.itm.edu.co/aspirante-pregrado/calendario-academico/"
+    },
+    {
+      "id": 2,
+      "titulo": "Ingeniería de Sistemas",
+      "institucion": "Universidad EAFIT",
+      "tipo": "Pregrado",
+      "ciudad": "Medellín",
+      "descripcion": "Desarrollo de software avanzado, ciberseguridad y gestión tecnológica.",
+      "apertura": "15 de Septiembre de 2026",
+      "cierre": "15 de Diciembre de 2026",
+      "estado": "Abierta",
+      "linkFormulario": "https://www.eafit.edu.co/inscripciones"
+    },
+    {
+      "id": 3,
+      "titulo": "Ingeniería Industrial",
+      "institucion": "Universidad de los Andes",
+      "tipo": "Pregrado",
+      "ciudad": "Bogotá",
+      "descripcion": "Optimización de cadenas de suministro, analítica de datos y gestión de operaciones.",
+      "apertura": "1 de Septiembre de 2026",
+      "cierre": "30 de Noviembre de 2026",
+      "estado": "Abierta",
+      "linkFormulario": "https://uniandes.edu.co/es/admisiones/pregrado"
+    },
+    {
+      "id": 4,
+      "titulo": "Administración de Empresas",
+      "institucion": "Pontificia Universidad Javeriana",
+      "tipo": "Pregrado",
+      "ciudad": "Bogotá",
+      "descripcion": "Liderazgo corporativo, finanzas corporativas y creación de negocios globales.",
+      "apertura": "1 de Octubre de 2026",
+      "cierre": "30 de Noviembre de 2026",
+      "estado": "Abierta",
+      "linkFormulario": "https://www.javeriana.edu.co/admisiones"
+    }
+  ]
+}
