@@ -489,7 +489,6 @@ html, body {
         justify-content: center;
     }
 
-    /* Forzar los botones de navegación a ser una lista vertical limpia y 100% simétrica */
     .side-nav {
         display: flex;
         flex-direction: column;
@@ -498,7 +497,7 @@ html, body {
     }
 
     .nav-item {
-        width: 100% !important; /* Evita que el botón activo cambie de ancho */
+        width: 100% !important;
         padding: 0.75rem 1rem;
         font-size: 0.9rem;
         justify-content: flex-start;
@@ -528,7 +527,7 @@ html, body {
     }
 
     .cards-grid {
-        grid-template-columns: 1fr; /* Tarjetas en 1 sola columna vertical perfecta */
+        grid-template-columns: 1fr;
         gap: 1rem;
         width: 100%;
     }

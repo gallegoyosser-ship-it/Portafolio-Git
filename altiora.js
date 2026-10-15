@@ -1,301 +1,351 @@
-let esRegistro = false;
-let programasData = [];
-let misPostulaciones = JSON.parse(localStorage.getItem('mis_postulaciones')) || [];
+let altioraData = null;
+let modoRegistro = false;
 
-const TIEMPO_INACTIVIDAD = 30 * 60 * 1000; // 30 minutos
-let temporizadorInactividad;
+document.addEventListener("DOMContentLoaded", async () => {
+    try {
+        const response = await fetch('altiora.json');
+        altioraData = await response.json();
+        
+        setTimeout(() => {
+            const loadingScreen = document.getElementById('screen-loading');
+            if (loadingScreen) loadingScreen.style.display = 'none';
+            verificarSesionActiva();
+        }, 1000);
 
-function reiniciarTemporizador() {
-    clearTimeout(temporizadorInactividad);
-    localStorage.setItem('ultima_actividad', Date.now());
-    
-    if (localStorage.getItem('altiora_user')) {
-        temporizadorInactividad = setTimeout(() => {
-            alert('Su sesión ha expirado por 30 minutos de inactividad.');
-            cerrarSesion();
-        }, TIEMPO_INACTIVIDAD);
+    } catch (error) {
+        console.error("Error al cargar altiora.json:", error);
+    }
+});
+
+function verificarSesionActiva() {
+    const sesionActiva = localStorage.getItem('altiora_sesion_activa');
+    if (sesionActiva) {
+        mostrarAppPrincipal(JSON.parse(sesionActiva));
+    } else {
+        mostrarPantallaAuth();
     }
 }
 
-['click', 'mousemove', 'keydown', 'scroll'].forEach(evento => {
-    document.addEventListener(evento, reiniciarTemporizador);
-});
-
-// Control de flujo inicial al cargar la página (5 segundos de splash screen)
-document.addEventListener('DOMContentLoaded', () => {
-    const usuarioGuardado = JSON.parse(localStorage.getItem('altiora_user'));
-    const ultimaActividad = localStorage.getItem('ultima_actividad');
-
-    setTimeout(() => {
-        document.getElementById('screen-loading').style.display = 'none';
-
-        if (usuarioGuardado) {
-            if (ultimaActividad && (Date.now() - ultimaActividad > TIEMPO_INACTIVIDAD)) {
-                cerrarSesion();
-            } else {
-                mostrarBienvenidaSutil(usuarioGuardado.nombre, () => {
-                    iniciarAppPrincipal(usuarioGuardado.nombre);
-                    reiniciarTemporizador();
-                });
-            }
-        } else {
-            document.getElementById('screen-auth').style.display = 'flex';
-        }
-    }, 5000); // 5 segundos exactos
-
-    configurarNavegacionYFiltros();
-});
-
-// Pantalla de bienvenida sutil de 5 segundos con el nombre del usuario
-function mostrarBienvenidaSutil(nombre, callback) {
-    const welcomeScreen = document.getElementById('screen-welcome');
-    const welcomeText = document.getElementById('welcomeUserText');
-    
-    welcomeText.textContent = `¡Bienvenido(a), ${nombre}!`;
-    welcomeScreen.style.display = 'flex';
-
-    setTimeout(() => {
-        welcomeScreen.style.display = 'none';
-        if (callback) callback();
-    }, 5000); // 5 segundos exactos
+function mostrarPantallaAuth() {
+    const authScreen = document.getElementById('screen-auth');
+    const appContainer = document.getElementById('app-container');
+    if (appContainer) appContainer.style.display = 'none';
+    if (authScreen) authScreen.style.display = 'flex';
 }
 
 function cambiarModoAuth() {
-    esRegistro = !esRegistro;
-    const title = document.getElementById('auth-title');
-    const subtitle = document.getElementById('auth-subtitle');
+    modoRegistro = !modoRegistro;
     const nombreField = document.getElementById('nombreField');
-    const submitBtn = document.getElementById('authSubmitBtn');
+    const authTitle = document.getElementById('auth-title');
+    const authSubtitle = document.getElementById('auth-subtitle');
     const toggleBtn = document.getElementById('toggleAuthMode');
-    
-    document.getElementById('authForm').reset();
+    const submitBtn = document.getElementById('authSubmitBtn');
 
-    if (esRegistro) {
-        title.textContent = "Crea tu cuenta en Altiora";
-        subtitle.textContent = "Para acceder a becas y convocatorias";
+    if (modoRegistro) {
         nombreField.style.display = 'block';
+        authTitle.textContent = "Registro de Cuenta";
+        authSubtitle.textContent = "Crea tus credenciales para acceder";
         submitBtn.textContent = "Registrarse";
-        toggleBtn.textContent = "Ya tengo cuenta";
+        toggleBtn.textContent = "¿Ya tienes cuenta? Inicia sesión";
     } else {
-        title.textContent = "Te damos la bienvenida";
-        subtitle.textContent = "Usa tu cuenta de Altiora Edu";
         nombreField.style.display = 'none';
-        submitBtn.textContent = "Siguiente";
-        toggleBtn.textContent = "Crear cuenta";
+        authTitle.textContent = "Iniciar Sesión";
+        authSubtitle.textContent = "Ingresa con tu cuenta registrada";
+        submitBtn.textContent = "Entrar";
+        toggleBtn.textContent = "¿No tienes cuenta? Regístrate";
     }
 }
 
-function procesarAutenticacion(event) {
-    event.preventDefault();
-    const email = document.getElementById('authEmail').value;
-    const password = document.getElementById('authPassword').value;
-    const nombre = document.getElementById('regNombre').value;
+function manejarAccionAuth(e) {
+    e.preventDefault();
+    const email = document.getElementById('authEmail').value.trim();
+    const password = document.getElementById('authPassword').value.trim();
+    
+    let usuariosRegistrados = JSON.parse(localStorage.getItem('altiora_usuarios_db')) || [];
 
-    if (esRegistro) {
-        const nuevoUsuario = { nombre: nombre || email.split('@')[0], email, password };
-        localStorage.setItem('altiora_user', JSON.stringify(nuevoUsuario));
-        alert('¡Registro exitoso! Cuenta guardada.');
-        cambiarModoAuth();
-    } else {
-        const usuarioGuardado = JSON.parse(localStorage.getItem('altiora_user'));
-        if (usuarioGuardado && usuarioGuardado.email === email && usuarioGuardado.password === password) {
-            document.getElementById('screen-auth').style.display = 'none';
-            
-            // Mostrar pantalla de bienvenida sutil de 5 segundos tras iniciar sesión
-            mostrarBienvenidaSutil(usuarioGuardado.nombre, () => {
-                iniciarAppPrincipal(usuarioGuardado.nombre);
-                reiniciarTemporizador();
-            });
-        } else if (!usuarioGuardado) {
-            alert('No hay cuentas registradas. Regístrate primero.');
-            cambiarModoAuth();
-        } else {
-            alert('Correo o contraseña incorrectos.');
+    if (modoRegistro) {
+        const nombre = document.getElementById('regNombre').value.trim();
+        if (!nombre || !email || !password) {
+            alert("Por favor completa todos los campos para registrarte.");
+            return;
         }
+
+        const existe = usuariosRegistrados.find(u => u.email === email);
+        if (existe) {
+            alert("Este correo ya está registrado. Por favor inicia sesión.");
+            cambiarModoAuth();
+            return;
+        }
+
+        const nuevoUsuario = { nombre, email, password, rol: "Estudiante" };
+        usuariosRegistrados.push(nuevoUsuario);
+        localStorage.setItem('altiora_usuarios_db', JSON.stringify(usuariosRegistrados));
+
+        alert("¡Registro exitoso! Ahora inicia sesión con tus datos.");
+        document.getElementById('authForm').reset();
+        cambiarModoAuth();
+
+    } else {
+        if (!email || !password) {
+            alert("Por favor ingresa tu correo y contraseña.");
+            return;
+        }
+
+        const usuarioEncontrado = usuariosRegistrados.find(u => u.email === email && u.password === password);
+
+        if (!usuarioEncontrado) {
+            alert("Correo o contraseña incorrectos, o la cuenta no existe. Regístrate primero si no tienes cuenta.");
+            return;
+        }
+
+        localStorage.setItem('altiora_sesion_activa', JSON.stringify(usuarioEncontrado));
+        
+        document.getElementById('screen-auth').style.display = 'none';
+        const welcomeScreen = document.getElementById('screen-welcome');
+        const welcomeText = document.getElementById('welcomeUserText');
+        if (welcomeText) welcomeText.textContent = `¡Bienvenido(a), ${usuarioEncontrado.nombre}!`;
+        if (welcomeScreen) welcomeScreen.style.display = 'flex';
+
+        setTimeout(() => {
+            if (welcomeScreen) welcomeScreen.style.display = 'none';
+            mostrarAppPrincipal(usuarioEncontrado);
+        }, 1500);
     }
 }
 
-function iniciarAppPrincipal(nombreUsuario) {
-    document.getElementById('screen-loading').style.display = 'none';
-    document.getElementById('screen-auth').style.display = 'none';
-    document.getElementById('screen-welcome').style.display = 'none';
-    document.getElementById('app-container').style.display = 'grid';
-    document.getElementById('userGreeting').textContent = nombreUsuario;
-    cargarDatos();
+function mostrarAppPrincipal(usuario) {
+    const appContainer = document.getElementById('app-container');
+    if (appContainer) appContainer.style.display = 'flex';
+    
+    const topUserName = document.getElementById('topUserName');
+    if (topUserName) topUserName.textContent = `Hola, ${usuario.nombre}`;
+    
+    const userRoleBadge = document.getElementById('userRoleBadge');
+    if (userRoleBadge) userRoleBadge.textContent = `Rol: ${usuario.rol}`;
+    
+    renderizarDatosDinamicos();
+    configurarNavegacionSPA();
 }
 
-function cerrarSesion() {
-    localStorage.removeItem('altiora_user');
-    localStorage.removeItem('ultima_actividad');
-    clearTimeout(temporizadorInactividad);
-    location.reload();
-}
+function renderizarDatosDinamicos() {
+    const statProg = document.getElementById('statProgramas');
+    if (statProg) statProg.textContent = altioraData.programas.length;
 
-async function cargarDatos() {
-    try {
-        const response = await fetch('altiora.json');
-        const data = await response.json();
-        programasData = data.programas;
-        renderProgramas(programasData);
-        renderMisPostulaciones();
-    } catch (error) {
-        console.error("Error al cargar altiora.json", error);
+    const statSub = document.getElementById('statSubsidios');
+    if (statSub) statSub.textContent = altioraData.subsidios.length;
+
+    const notifList = document.getElementById('notifListContainer');
+    const notifCount = document.getElementById('notifCount');
+    if (notifList && notifCount) {
+        notifList.innerHTML = '';
+        notifCount.textContent = altioraData.notificaciones.length;
+        altioraData.notificaciones.forEach(n => {
+            notifList.innerHTML += `
+                <div class="notif-item">
+                    <strong>${n.mensaje}</strong>
+                    <span class="notif-date">${n.fecha} — ${n.estado}</span>
+                </div>
+            `;
+        });
+    }
+
+    filtrarProgramas();
+
+    const subsidiosGrid = document.getElementById('subsidiosGrid');
+    if (subsidiosGrid) {
+        subsidiosGrid.innerHTML = '';
+        altioraData.subsidios.forEach(s => {
+            subsidiosGrid.innerHTML += `
+                <div class="card">
+                    <span class="card-tag">${s.prestamista}</span>
+                    <h3>${s.nombre}</h3>
+                    <p><strong>Costo Total:</strong> ${s.costo_total}</p>
+                    <p><strong>Cobertura:</strong> ${s.porcentaje_cubierto}</p>
+                    <p>${s.notas}</p>
+                    <button class="btn-card">Consultar Requisitos</button>
+                </div>
+            `;
+        });
+    }
+
+    const historialContainer = document.getElementById('historialPostulacionesContainer');
+    if (historialContainer) {
+        historialContainer.innerHTML = '';
+        altioraData.mis_postulaciones.forEach(p => {
+            let timelineHTML = '';
+            p.historial.forEach(h => {
+                timelineHTML += `
+                    <div class="timeline-item">
+                        <p><strong>Estado:</strong> ${h.estado} (${h.fecha})</p>
+                        <p style="font-size:0.82rem; color:#64748B;">${h.motivo}</p>
+                    </div>
+                `;
+            });
+
+            historialContainer.innerHTML += `
+                <div class="historial-card">
+                    <h3>${p.programa} — ${p.institucion}</h3>
+                    <p style="margin-bottom:1rem;"><strong>Estado Actual:</strong> <span class="badge-abierta">${p.estado_actual}</span></p>
+                    <h4 style="font-size:0.9rem; margin-bottom:0.5rem; color:#1E3A8A;">Trazabilidad del Proceso:</h4>
+                    ${timelineHTML}
+                </div>
+            `;
+        });
+    }
+
+    const docsBody = document.getElementById('documentosTableBody');
+    if (docsBody) {
+        docsBody.innerHTML = '';
+        altioraData.documentos_soporte.forEach(d => {
+            docsBody.innerHTML += `
+                <tr>
+                    <td>${d.tipo}</td>
+                    <td><span class="badge-verificado">${d.estado}</span></td>
+                    <td><a href="${d.url}" style="color:var(--primary-blue); font-weight:600; text-decoration:none;">Ver Soporte</a></td>
+                </tr>
+            `;
+        });
     }
 }
 
-function renderProgramas(items) {
+function filtrarProgramas() {
+    const selectUbicacion = document.getElementById('ubicacionSelect');
+    const inputSearch = document.getElementById('searchInput');
     const grid = document.getElementById('programasGrid');
+    
     if (!grid) return;
+
+    const ciudadFiltro = selectUbicacion ? selectUbicacion.value : 'todos';
+    const textoBusqueda = inputSearch ? inputSearch.value.toLowerCase() : '';
+    
     grid.innerHTML = '';
 
-    if (items.length === 0) {
-        grid.innerHTML = `<p style="grid-column: 1/-1; text-align: center; color: #94A3B8; padding: 2rem;">No se encontraron convocatorias con los filtros seleccionados.</p>`;
+    const filtrados = altioraData.programas.filter(p => {
+        const coincideCiudad = (ciudadFiltro === 'todos' || p.ciudad === ciudadFiltro);
+        const coincideTexto = p.nombre.toLowerCase().includes(textoBusqueda) || p.institucion.toLowerCase().includes(textoBusqueda);
+        return coincideCiudad && coincideTexto;
+    });
+
+    if (filtrados.length === 0) {
+        grid.innerHTML = `<p style="grid-column: 1/-1; text-align:center; color:#94A3B8;">No se encontraron programas con esos criterios.</p>`;
         return;
     }
 
-    items.forEach(item => {
-        const badgeClass = item.estado === 'Abierta' ? 'badge-abierta' : 'badge-pendiente';
-        const card = document.createElement('div');
-        card.className = 'card';
-        card.innerHTML = `
-            <div>
-                <span class="${badgeClass}">Convocatoria ${item.estado}</span>
-                <span class="card-tag" style="margin-top: 0.5rem; display: block;"><i class="fa-solid fa-location-dot"></i> ${item.ciudad} - ${item.institucion}</span>
-                <h3 style="margin-top: 0.5rem;">${item.titulo}</h3>
-                <p>${item.descripcion}</p>
-                <p style="font-size: 0.85rem; color: #475569; margin-top: 0.5rem;"><strong>Inicio Convocatoria:</strong> ${item.apertura}</p>
-                <p style="font-size: 0.85rem; color: #475569;"><strong>Cierre Convocatoria:</strong> ${item.cierre}</p>
-            </div>
-            <div style="margin-top: 1rem; display: flex; gap: 0.5rem; flex-wrap: wrap;">
-                <button class="btn-card" style="flex:1;" onclick="postularseACarrera(${item.id})">Guardar Postulación</button>
-                <a href="${item.linkFormulario}" target="_blank" class="btn-card" style="background:#0F1F38; text-align:center; text-decoration:none; padding: 0.5rem; flex:1;">Ir al Formulario</a>
+    filtrados.forEach(p => {
+        grid.innerHTML += `
+            <div class="card">
+                <div style="display:flex; justify-content:space-between; align-items:center;">
+                    <span class="card-tag">${p.institucion}</span>
+                    <span class="${p.estado === 'Abierta' ? 'badge-abierta' : 'badge-proxima'}">${p.estado}</span>
+                </div>
+                <h3>${p.nombre}</h3>
+                <p><strong>Ciudad:</strong> ${p.ciudad} (${p.tipo})</p>
+                <p><strong>Requisitos:</strong> ${p.requisitos}</p>
+                <p><strong>Beneficios:</strong> ${p.beneficios}</p>
+                <button class="btn-card" onclick="abrirFormularioInscripcion('${p.institucion}', '${p.nombre}')">Postularme</button>
             </div>
         `;
-        grid.appendChild(card);
     });
 }
 
-function filtrarPorUbicacion() {
-    aplicarFiltrosCombinados();
-}
-
-function postularseACarrera(idProg) {
-    const programa = programasData.find(p => p.id === idProg);
-    if (!programa) return;
-
-    const yaPostulado = misPostulaciones.some(p => p.id === idProg);
-    if (yaPostulado) {
-        alert(`Ya guardaste la postulación para ${programa.titulo} en la ${programa.institucion}.`);
-        return;
+function toggleNotificaciones() {
+    const dropdown = document.getElementById('notifDropdown');
+    if (dropdown) {
+        dropdown.style.display = dropdown.style.display === 'none' ? 'block' : 'none';
     }
-
-    const nuevaPostulacion = {
-        ...programa,
-        fechaGuardado: new Date().toLocaleDateString()
-    };
-
-    misPostulaciones.push(nuevaPostulacion);
-    localStorage.setItem('mis_postulaciones', JSON.stringify(misPostulaciones));
-    
-    alert(`¡Postulación guardada con éxito!\n\nCarrera: ${programa.titulo}\nUniversidad: ${programa.institucion}`);
-    renderMisPostulaciones();
 }
 
-function renderMisPostulaciones() {
-    const grid = document.getElementById('misPostulacionesGrid');
-    if (!grid) return;
-    grid.innerHTML = '';
-
-    if (misPostulaciones.length === 0) {
-        grid.innerHTML = `<p style="grid-column: 1/-1; text-align: center; color: #94A3B8; padding: 2rem;">Aún no tienes postulaciones guardadas.</p>`;
-        return;
-    }
-
-    misPostulaciones.forEach(item => {
-        const card = document.createElement('div');
-        card.className = 'card';
-        card.innerHTML = `
-            <div>
-                <span class="card-tag">Postulación Registrada</span>
-                <h3 style="margin-top: 0.5rem;">${item.titulo}</h3>
-                <p><strong>Universidad:</strong> ${item.institucion} (${item.ciudad})</p>
-                <p><strong>Fecha límite:</strong> ${item.cierre}</p>
-                <p style="font-size: 0.85rem; color: #475569;">Guardado el: ${item.fechaGuardado}</p>
-            </div>
-            <a href="${item.linkFormulario}" target="_blank" class="btn-card" style="background:#1E3A8A; text-align:center; text-decoration:none; display:block; margin-top:1rem; padding:0.75rem;">Ir al Formulario Oficial de la Universidad</a>
-        `;
-        grid.appendChild(card);
-    });
-}
-
-function aplicarFiltrosCombinados() {
-    const ubicacionSelect = document.getElementById('ubicacionSelect');
-    const ubicacionSeleccionada = ubicacionSelect ? ubicacionSelect.value : 'todos';
-    
-    const searchInput = document.getElementById('searchInput');
-    const textoBusqueda = searchInput ? searchInput.value.toLowerCase() : '';
-    
-    const pillActivo = document.querySelector('.filter-pills .pill.active');
-    const filtroEstado = pillActivo ? pillActivo.getAttribute('data-filter') : 'todos';
-
-    const filtrados = programasData.filter(p => {
-        const coincideUbicacion = (ubicacionSeleccionada === 'todos') || 
-                                  (p.ciudad.toLowerCase() === ubicacionSeleccionada.toLowerCase());
-                                  
-        const coincideTexto = p.titulo.toLowerCase().includes(textoBusqueda) || 
-                              p.institucion.toLowerCase().includes(textoBusqueda);
-                              
-        const coincideEstado = (filtroEstado === 'todos') || (p.estado === filtroEstado);
-
-        return coincideUbicacion && coincideTexto && coincideEstado;
-    });
-
-    renderProgramas(filtrados);
-}
-
-function configurarNavegacionYFiltros() {
-    const navItems = document.querySelectorAll('.nav-item');
+function configurarNavegacionSPA() {
+    const navItems = document.querySelectorAll('.sidebar .nav-item[data-target]');
     const sections = document.querySelectorAll('.content-section');
 
     navItems.forEach(item => {
         item.addEventListener('click', (e) => {
-            const target = item.getAttribute('data-target');
-            if (!target) return;
             e.preventDefault();
-            navItems.forEach(n => n.classList.remove('active'));
-            sections.forEach(s => s.classList.remove('active'));
+            const targetId = item.getAttribute('data-target');
+
+            navItems.forEach(nav => nav.classList.remove('active'));
             item.classList.add('active');
-            document.getElementById(`section-${target}`).classList.add('active');
+
+            sections.forEach(sec => {
+                sec.classList.remove('active');
+                if (sec.id === `section-${targetId}`) {
+                    sec.classList.add('active');
+                }
+            });
         });
     });
+}
 
-    const searchInput = document.getElementById('searchInput');
-    if (searchInput) {
-        searchInput.addEventListener('input', () => {
-            aplicarFiltrosCombinados();
+function solicitarCerrarSesion(e) {
+    e.preventDefault();
+    const modal = document.getElementById('logoutModal');
+    if (modal) modal.style.display = 'flex';
+}
+
+function cancelarCerrarSesion() {
+    const modal = document.getElementById('logoutModal');
+    if (modal) modal.style.display = 'none';
+}
+
+function confirmarCerrarSesion() {
+    localStorage.removeItem('altiora_sesion_activa');
+    location.reload();
+}
+
+// ==========================================
+// NUEVAS FUNCIONES DE INSCRIPCIÓN Y MODAL
+// ==========================================
+function abrirFormularioInscripcion(universidad, programa) {
+    document.getElementById("modalUniversidad").value = universidad;
+    document.getElementById("modalPrograma").value = programa;
+    document.getElementById("infoProgramaSeleccionado").innerText = `Postulación a: ${programa} (${universidad})`;
+    document.getElementById("modalInscripcion").style.display = "flex";
+}
+
+function cerrarFormularioInscripcion() {
+    document.getElementById("modalInscripcion").style.display = "none";
+    document.getElementById("respuestaModal").innerText = "";
+}
+
+document.addEventListener("DOMContentLoaded", () => {
+    const formInscripcion = document.getElementById("formInscripcionModal");
+    if (formInscripcion) {
+        formInscripcion.addEventListener("submit", async function(e) {
+            e.preventDefault();
+
+            const datos = {
+                universidad: document.getElementById("modalUniversidad").value,
+                programa: document.getElementById("modalPrograma").value,
+                nombre: document.getElementById("nombreModal").value,
+                email: document.getElementById("emailModal").value,
+                whatsapp: document.getElementById("whatsappModal").value,
+                notif_email: document.getElementById("notifEmailModal").checked,
+                notif_whatsapp: document.getElementById("notifWpModal").checked
+            };
+
+            try {
+                const respuesta = await fetch("http://127.0.0.1:8000/api/inscripcion", {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify(datos)
+                });
+
+                const resultado = await respuesta.json();
+                const respDiv = document.getElementById("respuestaModal");
+                respDiv.style.color = "#166534";
+                respDiv.innerText = resultado.mensaje;
+
+                setTimeout(() => {
+                    cerrarFormularioInscripcion();
+                    formInscripcion.reset();
+                }, 2500);
+
+            } catch (error) {
+                const respDiv = document.getElementById("respuestaModal");
+                respDiv.style.color = "#dc2626";
+                respDiv.innerText = "Error de conexión con el backend FastAPI.";
+            }
         });
     }
-
-    const pills = document.querySelectorAll('.filter-pills .pill');
-    pills.forEach(pill => {
-        pill.addEventListener('click', () => {
-            pills.forEach(p => p.classList.remove('active'));
-            pill.classList.add('active');
-            aplicarFiltrosCombinados();
-        });
-    });
-}
-// Si el usuario escribe algo y presiona Enter, puede buscar directamente en Google si no lo encuentra en Altiora
-const searchInput = document.getElementById('searchInput');
-if (searchInput) {
-    searchInput.addEventListener('keypress', function (e) {
-        if (e.key === 'Enter') {
-            const query = e.target.value.trim();
-            if (query.length > 3) {
-                // Abre una pestaña de Google buscando la carrera y la universidad en Colombia
-                const urlGoogle = `https://www.google.com/search?q=${encodeURIComponent(query + " convocatorias universidad Colombia admisiones")}`;
-                window.open(urlGoogle, '_blank');
-            }
-        }
-    });
-}
+});

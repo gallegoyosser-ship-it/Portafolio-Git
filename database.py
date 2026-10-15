@@ -1,5 +1,5 @@
 from fastapi import FastAPI, UploadFile, File, Form
-import mysql.connector
+import mysql.connector  # type: ignore
 
 app = FastAPI()
 
@@ -24,3 +24,13 @@ async def crear_postulacion(
     cursor.close()
     conexion.close()
     return {"mensaje": "¡Postulación guardada en MySQL con éxito!"}
+
+# Conexión a tu base de datos en Aiven
+conexion = mysql.connector.connect(
+    host="mysql-2f26411d-defaultdb12.f.aivencloud.com",
+    port=18374,
+    user="avnadmin",
+    password="TU_PASSWORD_DE_AIVEN",  # Reemplaza esto con tu contraseña real de Aiven
+    database="defaultdb",
+    ssl_ca="ca.pem"  # Opcional si descargaste el certificado CA de Aiven
+)

@@ -1,52 +1,94 @@
 {
-  "programas": [
+  "usuario_actual": {
+    "nombre": "",
+    "username": "",
+    "rol": "Estudiante",
+    "email": ""
+  },
+  "notificaciones": [
     {
       "id": 1,
-      "titulo": "Tecnología en Desarrollo de Software",
-      "institucion": "ITM (Inst. Tecnológico Metropolitano)",
-      "tipo": "Tecnología",
-      "ciudad": "Medellín",
-      "descripcion": "Programación backend, frontend, bases de datos y soporte técnico.",
-      "apertura": "1 de Octubre de 2026",
-      "cierre": "30 de Noviembre de 2026",
-      "estado": "Abierta",
-      "linkFormulario": "https://www.itm.edu.co/aspirante-pregrado/calendario-academico/"
+      "mensaje": "¡Felicidades! Tu postulación a Biología ha sido Aceptada.",
+      "fecha": "2026-04-20",
+      "estado": "Leído"
     },
     {
       "id": 2,
-      "titulo": "Ingeniería de Sistemas",
-      "institucion": "Universidad EAFIT",
+      "mensaje": "Tu postulación a Ing. Civil está en revisión técnica.",
+      "fecha": "2026-04-16",
+      "estado": "No leído"
+    }
+  ],
+  "documentos_soporte": [
+    {"tipo": "Cédula de Ciudadanía", "estado": "Verificado", "url": "#"},
+    {"tipo": "Pruebas ICFES Saber 11", "estado": "Verificado", "url": "#"}
+  ],
+  "programas": [
+    {
+      "id": 6,
+      "institucion": "Universidad de Antioquia",
+      "nombre": "Biología",
       "tipo": "Pregrado",
       "ciudad": "Medellín",
-      "descripcion": "Desarrollo de software avanzado, ciberseguridad y gestión tecnológica.",
-      "apertura": "15 de Septiembre de 2026",
-      "cierre": "15 de Diciembre de 2026",
       "estado": "Abierta",
-      "linkFormulario": "https://www.eafit.edu.co/inscripciones"
+      "cierre": "2026-06-01",
+      "requisitos": "Examen de admisión propio",
+      "beneficios": "Matrícula según estrato (puede ser $0)."
     },
     {
-      "id": 3,
-      "titulo": "Ingeniería Industrial",
-      "institucion": "Universidad de los Andes",
+      "id": 7,
+      "institucion": "Universidad Nacional de Colombia",
+      "nombre": "Ingeniería Civil",
       "tipo": "Pregrado",
       "ciudad": "Bogotá",
-      "descripcion": "Optimización de cadenas de suministro, analítica de datos y gestión de operaciones.",
-      "apertura": "1 de Septiembre de 2026",
-      "cierre": "30 de Noviembre de 2026",
       "estado": "Abierta",
-      "linkFormulario": "https://uniandes.edu.co/es/admisiones/pregrado"
+      "cierre": "2026-07-01",
+      "requisitos": "Puntaje en examen UNAL",
+      "beneficios": "Acceso a comedores y movilidad nacional"
     },
     {
-      "id": 4,
-      "titulo": "Administración de Empresas",
-      "institucion": "Pontificia Universidad Javeriana",
+      "id": 10,
+      "institucion": "Instituto Tecnológico Metropolitano",
+      "nombre": "Ing. Mecatrónica",
       "tipo": "Pregrado",
-      "ciudad": "Bogotá",
-      "descripcion": "Liderazgo corporativo, finanzas corporativas y creación de negocios globales.",
-      "apertura": "1 de Octubre de 2026",
-      "cierre": "30 de Noviembre de 2026",
-      "estado": "Abierta",
-      "linkFormulario": "https://www.javeriana.edu.co/admisiones"
+      "ciudad": "Medellín",
+      "estado": "Próxima",
+      "cierre": "2026-06-30",
+      "requisitos": "Pruebas ICFES y validación de estrato",
+      "beneficios": "Presupuesto para proyectos de robótica"
+    }
+  ],
+  "subsidios": [
+    {
+      "id": 1,
+      "nombre": "Beca Excelencia Académica UdeA",
+      "tipo": "Matrícula",
+      "prestamista": "Universidad de Antioquia",
+      "costo_total": "$4.500.000",
+      "porcentaje_cubierto": "100%",
+      "duracion": "10 semestres",
+      "notas": "Beca por excelencia académica UdeA."
+    },
+    {
+      "id": 2,
+      "nombre": "Crédito Condonable ICETEX-UNAL",
+      "tipo": "Matrícula",
+      "prestamista": "ICETEX",
+      "costo_total": "$12.000.000",
+      "porcentaje_cubierto": "80%",
+      "plazo": "60 meses",
+      "notas": "Crédito condonable por rendimiento académico."
+    }
+  ],
+  "mis_postulaciones": [
+    {
+      "programa": "Biología",
+      "institucion": "Universidad de Antioquia",
+      "estado_actual": "Aceptada",
+      "historial": [
+        {"estado": "En revisión", "fecha": "2026-04-15", "motivo": "Cargue inicial web."},
+        {"estado": "Aceptada", "fecha": "2026-04-15", "motivo": "Puntaje de admisión válido y documentos verificados."}
+      ]
     }
   ]
 }
