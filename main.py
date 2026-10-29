@@ -1,22 +1,41 @@
 """API de Altiora Edu. Ejecutar:  uvicorn main:app --reload  (puerto 8000)"""
 import os
+import traceback
 import datetime as dt
 import bcrypt, jwt, pymysql
+from dotenv import load_dotenv
 from fastapi import Depends, FastAPI, Header, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.responses import JSONResponse
 from pydantic import BaseModel, Field
 
+load_dotenv()  # lee las credenciales del archivo .env
 SECRET = os.getenv("JWT_SECRET", "cambia-esto-en-produccion")
 app = FastAPI(title="Altiora Edu API")
+@app.middleware("http")
+async def errores(request, call_next):
+    """Convierte los errores internos en JSON para que el navegador muestre la causa real
+    (sin esto, el navegador solo dice "Failed to fetch"). En producción, no devuelvas {e}."""
+    try:
+        return await call_next(request)
+    except Exception as e:
+        traceback.print_exc()
+        return JSONResponse({"detail": f"Error del servidor: {e}"}, status_code=500)
+
+
 # Solo para desarrollo: acepta la página desde localhost. En producción pon tu dominio.
 app.add_middleware(CORSMiddleware, allow_origin_regex=r"http://(localhost|127\.0\.0\.1)(:\d+)?",
                    allow_methods=["*"], allow_headers=["*"])
 
 
 def conexion():
-    return pymysql.connect(host=os.getenv("DB_HOST", "127.0.0.1"), user=os.getenv("DB_USER", "root"),
-                           password=os.getenv("DB_PASS", ""), database=os.getenv("DB_NAME", "altiora-edu"),
-                           charset="utf8mb4", cursorclass=pymysql.cursors.DictCursor, autocommit=True)
+    extra = {}
+    if os.getenv("DB_SSL_CA"):  # Aiven exige conexión cifrada: ruta al ca.pem descargado
+        extra["ssl"] = {"ca": os.getenv("DB_SSL_CA")}
+    return pymysql.connect(host=os.getenv("DB_HOST", "127.0.0.1"), port=int(os.getenv("DB_PORT", "3306")),
+                           user=os.getenv("DB_USER", "root"), password=os.getenv("DB_PASS", ""),
+                           database=os.getenv("DB_NAME", "defaultdb"), charset="utf8mb4",
+                           cursorclass=pymysql.cursors.DictCursor, autocommit=True, **extra)
 
 
 def consulta(sql, args=(), uno=False):
