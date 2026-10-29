@@ -1,351 +1,158 @@
-let altioraData = null;
-let modoRegistro = false;
+const $ = i => document.getElementById(i);
+const esc = s => String(s ?? '').replace(/[&<>"']/g, c => ({'&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;'}[c]));
+const money = n => '$' + Number(n).toLocaleString('es-CO');
+const fecha = d => d ? new Date(d + 'T00:00').toLocaleDateString('es-CO', {day: 'numeric', month: 'long', year: 'numeric'}) : '';
 
-document.addEventListener("DOMContentLoaded", async () => {
-    try {
-        const response = await fetch('altiora.json');
-        altioraData = await response.json();
-        
-        setTimeout(() => {
-            const loadingScreen = document.getElementById('screen-loading');
-            if (loadingScreen) loadingScreen.style.display = 'none';
-            verificarSesionActiva();
-        }, 1000);
+let D, P = [], F = [], ciudades = ['Todas'], tiposU = ['Todas'];
+let fCiudad = 'Todas', fEstado = 'Todos', fTipo = 'Todos', fTipoU = 'Todas';
 
-    } catch (error) {
-        console.error("Error al cargar altiora.json:", error);
-    }
-});
+async function cargar() {
+  try { D = await (await fetch('altiora.json')).json(); await conectarAPI(); }
+  catch (e) { $('gridProg').innerHTML = '<div class="empty">No se pudo cargar altiora.json. Abre la página con un servidor local (por ejemplo, Live Server de VS Code).</div>'; return; }
 
-function verificarSesionActiva() {
-    const sesionActiva = localStorage.getItem('altiora_sesion_activa');
-    if (sesionActiva) {
-        mostrarAppPrincipal(JSON.parse(sesionActiva));
-    } else {
-        mostrarPantallaAuth();
-    }
+  const hoy = new Date().toISOString().slice(0, 10);
+  const ies = Object.fromEntries(D.instituciones.map(i => [i.id, i]));
+  P = D.programas.map(p => ({...p, inst: ies[p.ies].nombre, ciudad: ies[p.ies].ciudad,
+    estado: hoy < p.ini ? 'Próxima' : hoy <= p.fin ? 'Abierta' : 'Cerrada'}));
+  const prog = Object.fromEntries(D.programas.map(p => [p.id, p]));
+  F = D.cobertura.map(c => ({...c, nombre: `${c.tipo}: ${prog[c.prog].nombre}`, inst: ies[prog[c.prog].ies].nombre}));
+  D.instituciones.forEach(i => i.n = P.filter(p => p.ies === i.id).length);
+
+  ciudades = ['Todas', ...new Set(P.map(p => p.ciudad))];
+  tiposU = ['Todas', ...new Set(D.instituciones.map(i => i.tipo))];
+  $('facts').innerHTML = [[P.filter(p => p.estado === 'Abierta').length, 'convocatorias abiertas'], [P.length, 'programas'], [D.instituciones.length, 'instituciones'], [F.length + D.entidades.length, 'becas, créditos y fondos']]
+    .map(([n, l]) => `<div><b>${n}</b><span>${l}</span></div>`).join('');
+  $('q').oninput = pintarProg;
+  renderAuth(true);
+  pintarProg(); pintarUni(); pintarFin(); pintarEnt();
 }
 
-function mostrarPantallaAuth() {
-    const authScreen = document.getElementById('screen-auth');
-    const appContainer = document.getElementById('app-container');
-    if (appContainer) appContainer.style.display = 'none';
-    if (authScreen) authScreen.style.display = 'flex';
+function chips(el, vals, act, fn) {
+  el.innerHTML = vals.map(v => `<button class="chip${v === act ? ' on' : ''}" type="button">${esc(v)}</button>`).join('');
+  [...el.children].forEach((b, i) => b.onclick = () => fn(vals[i]));
 }
 
-function cambiarModoAuth() {
-    modoRegistro = !modoRegistro;
-    const nombreField = document.getElementById('nombreField');
-    const authTitle = document.getElementById('auth-title');
-    const authSubtitle = document.getElementById('auth-subtitle');
-    const toggleBtn = document.getElementById('toggleAuthMode');
-    const submitBtn = document.getElementById('authSubmitBtn');
-
-    if (modoRegistro) {
-        nombreField.style.display = 'block';
-        authTitle.textContent = "Registro de Cuenta";
-        authSubtitle.textContent = "Crea tus credenciales para acceder";
-        submitBtn.textContent = "Registrarse";
-        toggleBtn.textContent = "¿Ya tienes cuenta? Inicia sesión";
-    } else {
-        nombreField.style.display = 'none';
-        authTitle.textContent = "Iniciar Sesión";
-        authSubtitle.textContent = "Ingresa con tu cuenta registrada";
-        submitBtn.textContent = "Entrar";
-        toggleBtn.textContent = "¿No tienes cuenta? Regístrate";
-    }
+function pintarProg() {
+  chips($('chipsCiudad'), ciudades, fCiudad, v => { fCiudad = v; pintarProg(); });
+  chips($('chipsEstado'), ['Todos', 'Abierta', 'Próxima', 'Cerrada'], fEstado, v => { fEstado = v; pintarProg(); });
+  const q = $('q').value.toLowerCase().trim();
+  const r = P.filter(p => (fCiudad === 'Todas' || p.ciudad === fCiudad) && (fEstado === 'Todos' || p.estado === fEstado) && (p.nombre + ' ' + p.inst).toLowerCase().includes(q));
+  $('gridProg').innerHTML = r.length ? r.map(p => `<article class="card prog ${p.estado[0].toLowerCase()}">
+    <div class="meta"><span class="tag st-${p.estado}">${p.estado}</span><span class="tag">${esc(p.tipo)}</span><span class="tag">${esc(p.ciudad)}</span></div>
+    <h3>${esc(p.nombre)}</h3><div class="inst">${esc(p.inst)}</div>
+    <dl><div><dt>Convocatoria</dt><dd>${fecha(p.ini)} al ${fecha(p.fin)}</dd></div><div><dt>Requisitos</dt><dd>${esc(p.req)}</dd></div><div><dt>Beneficios</dt><dd>${esc(p.ben)}</dd></div></dl><button class="save${guardado(p.id) ? ' on' : ''}" data-id="${p.id}" aria-pressed="${guardado(p.id)}">${guardado(p.id) ? '♥ Guardado' : '♡ Guardar'}</button></article>`).join('')
+    : '<div class="empty">No hay programas con esos filtros. Prueba otra ciudad o borra la búsqueda.</div>';
 }
 
-function manejarAccionAuth(e) {
-    e.preventDefault();
-    const email = document.getElementById('authEmail').value.trim();
-    const password = document.getElementById('authPassword').value.trim();
-    
-    let usuariosRegistrados = JSON.parse(localStorage.getItem('altiora_usuarios_db')) || [];
-
-    if (modoRegistro) {
-        const nombre = document.getElementById('regNombre').value.trim();
-        if (!nombre || !email || !password) {
-            alert("Por favor completa todos los campos para registrarte.");
-            return;
-        }
-
-        const existe = usuariosRegistrados.find(u => u.email === email);
-        if (existe) {
-            alert("Este correo ya está registrado. Por favor inicia sesión.");
-            cambiarModoAuth();
-            return;
-        }
-
-        const nuevoUsuario = { nombre, email, password, rol: "Estudiante" };
-        usuariosRegistrados.push(nuevoUsuario);
-        localStorage.setItem('altiora_usuarios_db', JSON.stringify(usuariosRegistrados));
-
-        alert("¡Registro exitoso! Ahora inicia sesión con tus datos.");
-        document.getElementById('authForm').reset();
-        cambiarModoAuth();
-
-    } else {
-        if (!email || !password) {
-            alert("Por favor ingresa tu correo y contraseña.");
-            return;
-        }
-
-        const usuarioEncontrado = usuariosRegistrados.find(u => u.email === email && u.password === password);
-
-        if (!usuarioEncontrado) {
-            alert("Correo o contraseña incorrectos, o la cuenta no existe. Regístrate primero si no tienes cuenta.");
-            return;
-        }
-
-        localStorage.setItem('altiora_sesion_activa', JSON.stringify(usuarioEncontrado));
-        
-        document.getElementById('screen-auth').style.display = 'none';
-        const welcomeScreen = document.getElementById('screen-welcome');
-        const welcomeText = document.getElementById('welcomeUserText');
-        if (welcomeText) welcomeText.textContent = `¡Bienvenido(a), ${usuarioEncontrado.nombre}!`;
-        if (welcomeScreen) welcomeScreen.style.display = 'flex';
-
-        setTimeout(() => {
-            if (welcomeScreen) welcomeScreen.style.display = 'none';
-            mostrarAppPrincipal(usuarioEncontrado);
-        }, 1500);
-    }
+function pintarUni() {
+  chips($('chipsTipoU'), tiposU, fTipoU, v => { fTipoU = v; pintarUni(); });
+  const r = D.instituciones.filter(i => fTipoU === 'Todas' || i.tipo === fTipoU);
+  $('gridUni').innerHTML = r.map(i => `<article class="card uni">
+    <div class="banner" style="background:linear-gradient(135deg,hsl(${i.id * 47 % 360} 55% 30%),hsl(${(i.id * 47 + 40) % 360} 60% 42%))">
+      <span>${esc(i.sig)}</span>${i.img ? `<img src="${esc(i.img)}" alt="Campus de ${esc(i.nombre)}" loading="lazy" onerror="this.remove()">` : ''}</div>
+    <div class="body"><h3>${esc(i.nombre)}</h3>
+      <div class="meta"><span class="tag">${esc(i.tipo)}</span><span class="tag">${esc(i.ciudad)}</span></div>
+      <p>${i.n} ${i.n === 1 ? 'programa registrado' : 'programas registrados'}</p>
+      <p>${esc(i.tel)}</p><a href="mailto:${esc(i.mail)}">${esc(i.mail)}</a><a href="${esc(i.web)}" target="_blank" rel="noopener">Sitio oficial</a></div></article>`).join('');
 }
 
-function mostrarAppPrincipal(usuario) {
-    const appContainer = document.getElementById('app-container');
-    if (appContainer) appContainer.style.display = 'flex';
-    
-    const topUserName = document.getElementById('topUserName');
-    if (topUserName) topUserName.textContent = `Hola, ${usuario.nombre}`;
-    
-    const userRoleBadge = document.getElementById('userRoleBadge');
-    if (userRoleBadge) userRoleBadge.textContent = `Rol: ${usuario.rol}`;
-    
-    renderizarDatosDinamicos();
-    configurarNavegacionSPA();
+function pintarFin() {
+  chips($('chipsTipo'), ['Todos', 'Beca', 'Crédito', 'Beca-Crédito'], fTipo, v => { fTipo = v; pintarFin(); });
+  const r = F.filter(f => fTipo === 'Todos' || f.tipo === fTipo);
+  $('gridFin').innerHTML = r.map(f => `<article class="card fund"><div class="ring" style="--p:${f.pct}"><b>${f.pct}%</b></div>
+    <div><div class="meta"><span class="tag">${esc(f.tipo)}</span></div><h3 style="margin-top:.4rem">${esc(f.nombre)}</h3>
+    <div class="inst">${esc(f.quien)}</div><p style="margin-top:.4rem"><b>Costo del programa:</b> ${money(f.costo)}<br><small>${esc(f.inst)} · ${esc(f.dur)}</small></p><p><small>${esc(f.notas)}</small></p></div></article>`).join('')
+    || '<div class="empty">Todavía no hay apoyos de este tipo.</div>';
 }
 
-function renderizarDatosDinamicos() {
-    const statProg = document.getElementById('statProgramas');
-    if (statProg) statProg.textContent = altioraData.programas.length;
-
-    const statSub = document.getElementById('statSubsidios');
-    if (statSub) statSub.textContent = altioraData.subsidios.length;
-
-    const notifList = document.getElementById('notifListContainer');
-    const notifCount = document.getElementById('notifCount');
-    if (notifList && notifCount) {
-        notifList.innerHTML = '';
-        notifCount.textContent = altioraData.notificaciones.length;
-        altioraData.notificaciones.forEach(n => {
-            notifList.innerHTML += `
-                <div class="notif-item">
-                    <strong>${n.mensaje}</strong>
-                    <span class="notif-date">${n.fecha} — ${n.estado}</span>
-                </div>
-            `;
-        });
-    }
-
-    filtrarProgramas();
-
-    const subsidiosGrid = document.getElementById('subsidiosGrid');
-    if (subsidiosGrid) {
-        subsidiosGrid.innerHTML = '';
-        altioraData.subsidios.forEach(s => {
-            subsidiosGrid.innerHTML += `
-                <div class="card">
-                    <span class="card-tag">${s.prestamista}</span>
-                    <h3>${s.nombre}</h3>
-                    <p><strong>Costo Total:</strong> ${s.costo_total}</p>
-                    <p><strong>Cobertura:</strong> ${s.porcentaje_cubierto}</p>
-                    <p>${s.notas}</p>
-                    <button class="btn-card">Consultar Requisitos</button>
-                </div>
-            `;
-        });
-    }
-
-    const historialContainer = document.getElementById('historialPostulacionesContainer');
-    if (historialContainer) {
-        historialContainer.innerHTML = '';
-        altioraData.mis_postulaciones.forEach(p => {
-            let timelineHTML = '';
-            p.historial.forEach(h => {
-                timelineHTML += `
-                    <div class="timeline-item">
-                        <p><strong>Estado:</strong> ${h.estado} (${h.fecha})</p>
-                        <p style="font-size:0.82rem; color:#64748B;">${h.motivo}</p>
-                    </div>
-                `;
-            });
-
-            historialContainer.innerHTML += `
-                <div class="historial-card">
-                    <h3>${p.programa} — ${p.institucion}</h3>
-                    <p style="margin-bottom:1rem;"><strong>Estado Actual:</strong> <span class="badge-abierta">${p.estado_actual}</span></p>
-                    <h4 style="font-size:0.9rem; margin-bottom:0.5rem; color:#1E3A8A;">Trazabilidad del Proceso:</h4>
-                    ${timelineHTML}
-                </div>
-            `;
-        });
-    }
-
-    const docsBody = document.getElementById('documentosTableBody');
-    if (docsBody) {
-        docsBody.innerHTML = '';
-        altioraData.documentos_soporte.forEach(d => {
-            docsBody.innerHTML += `
-                <tr>
-                    <td>${d.tipo}</td>
-                    <td><span class="badge-verificado">${d.estado}</span></td>
-                    <td><a href="${d.url}" style="color:var(--primary-blue); font-weight:600; text-decoration:none;">Ver Soporte</a></td>
-                </tr>
-            `;
-        });
-    }
+function pintarEnt() {
+  $('gridEnt').innerHTML = D.entidades.map(e => `<article class="card ent"><span class="tag">${esc(e.ambito)}</span><h3>${esc(e.nombre)}</h3><p>${esc(e.desc)}</p><a href="${esc(e.web)}" target="_blank" rel="noopener">Ir al sitio oficial</a></article>`).join('');
 }
 
-function filtrarProgramas() {
-    const selectUbicacion = document.getElementById('ubicacionSelect');
-    const inputSearch = document.getElementById('searchInput');
-    const grid = document.getElementById('programasGrid');
-    
-    if (!grid) return;
+// ---------- Conexión con la API (FastAPI + MariaDB) ----------
+const API = 'http://127.0.0.1:8000/api';
+let ME = null, ONLINE = false, modoReg = false, pendiente = null;
+const tok = () => localStorage.getItem('altiora_token');
+const guardado = id => !!ME && ME.favs.includes(id);
 
-    const ciudadFiltro = selectUbicacion ? selectUbicacion.value : 'todos';
-    const textoBusqueda = inputSearch ? inputSearch.value.toLowerCase() : '';
-    
-    grid.innerHTML = '';
-
-    const filtrados = altioraData.programas.filter(p => {
-        const coincideCiudad = (ciudadFiltro === 'todos' || p.ciudad === ciudadFiltro);
-        const coincideTexto = p.nombre.toLowerCase().includes(textoBusqueda) || p.institucion.toLowerCase().includes(textoBusqueda);
-        return coincideCiudad && coincideTexto;
-    });
-
-    if (filtrados.length === 0) {
-        grid.innerHTML = `<p style="grid-column: 1/-1; text-align:center; color:#94A3B8;">No se encontraron programas con esos criterios.</p>`;
-        return;
-    }
-
-    filtrados.forEach(p => {
-        grid.innerHTML += `
-            <div class="card">
-                <div style="display:flex; justify-content:space-between; align-items:center;">
-                    <span class="card-tag">${p.institucion}</span>
-                    <span class="${p.estado === 'Abierta' ? 'badge-abierta' : 'badge-proxima'}">${p.estado}</span>
-                </div>
-                <h3>${p.nombre}</h3>
-                <p><strong>Ciudad:</strong> ${p.ciudad} (${p.tipo})</p>
-                <p><strong>Requisitos:</strong> ${p.requisitos}</p>
-                <p><strong>Beneficios:</strong> ${p.beneficios}</p>
-                <button class="btn-card" onclick="abrirFormularioInscripcion('${p.institucion}', '${p.nombre}')">Postularme</button>
-            </div>
-        `;
-    });
+async function api(ruta, op = {}) {
+  const r = await fetch(API + ruta, {...op, headers: {'Content-Type': 'application/json', ...(tok() ? {Authorization: 'Bearer ' + tok()} : {}), ...op.headers}});
+  const d = await r.json().catch(() => ({}));
+  if (!r.ok) throw new Error(d.detail || 'Ocurrió un error. Inténtalo de nuevo.');
+  return d;
 }
 
-function toggleNotificaciones() {
-    const dropdown = document.getElementById('notifDropdown');
-    if (dropdown) {
-        dropdown.style.display = dropdown.style.display === 'none' ? 'block' : 'none';
-    }
+// Si la API responde, sus datos reemplazan a los del JSON (el JSON aporta sigla, web e imagen).
+async function conectarAPI() {
+  try {
+    const c = await api('/catalogo');
+    const extra = Object.fromEntries(D.instituciones.map(i => [i.id, i]));
+    const limpio = o => Object.fromEntries(Object.entries(o).filter(([, v]) => v));
+    D.instituciones = c.instituciones.map(i => ({sig: i.nombre, ...extra[i.id], ...limpio(i)}));
+    D.programas = c.programas; D.cobertura = c.cobertura; ONLINE = true;
+    if (tok()) ME = await api('/me').catch(() => { localStorage.removeItem('altiora_token'); return null; });
+  } catch (e) { ONLINE = false; }
 }
 
-function configurarNavegacionSPA() {
-    const navItems = document.querySelectorAll('.sidebar .nav-item[data-target]');
-    const sections = document.querySelectorAll('.content-section');
-
-    navItems.forEach(item => {
-        item.addEventListener('click', (e) => {
-            e.preventDefault();
-            const targetId = item.getAttribute('data-target');
-
-            navItems.forEach(nav => nav.classList.remove('active'));
-            item.classList.add('active');
-
-            sections.forEach(sec => {
-                sec.classList.remove('active');
-                if (sec.id === `section-${targetId}`) {
-                    sec.classList.add('active');
-                }
-            });
-        });
-    });
+function abrirAuth(reg) {
+  modoReg = reg; $('lNombre').hidden = !reg; $('aNombre').required = reg; $('aMsg').textContent = '';
+  $('aTitle').textContent = reg ? 'Crear cuenta' : 'Iniciar sesión';
+  $('aSub').textContent = reg ? 'Regístrate para guardar programas y ver sus becas.' : 'Entra para guardar tus programas favoritos.';
+  $('aBtn').textContent = reg ? 'Registrarme' : 'Entrar';
+  $('aToggle').textContent = reg ? '¿Ya tienes cuenta? Inicia sesión' : '¿No tienes cuenta? Regístrate';
+  $('aPass').autocomplete = reg ? 'new-password' : 'current-password';
+  if (!$('dlgAuth').open) $('dlgAuth').showModal();
 }
 
-function solicitarCerrarSesion(e) {
-    e.preventDefault();
-    const modal = document.getElementById('logoutModal');
-    if (modal) modal.style.display = 'flex';
+function renderAuth(sinPintar) {
+  const box = $('authBox');
+  box.innerHTML = ME ? `<button class="btn ghost" id="bPanel">♥ Mi panel (${ME.favs.length})</button><button class="link" id="bOut">Salir</button>`
+    : '<button class="link" id="bIn">Iniciar sesión</button><button class="btn" id="bReg">Registrarme</button>';
+  if (ME) { $('bPanel').onclick = abrirPanel; $('bOut').onclick = () => { localStorage.removeItem('altiora_token'); ME = null; $('dlgPanel').close(); fCiudad = 'Todas'; renderAuth(); pintarProg(); }; }
+  else { $('bIn').onclick = () => abrirAuth(false); $('bReg').onclick = () => abrirAuth(true); }
+  if (sinPintar && ME && ME.ciudad && ciudades.includes(ME.ciudad)) fCiudad = ME.ciudad;
 }
 
-function cancelarCerrarSesion() {
-    const modal = document.getElementById('logoutModal');
-    if (modal) modal.style.display = 'none';
+$('aToggle').onclick = () => abrirAuth(!modoReg);
+$('fAuth').onsubmit = async e => {
+  e.preventDefault();
+  const msg = $('aMsg'), btn = $('aBtn'); msg.textContent = ''; btn.disabled = true;
+  try {
+    if (!ONLINE) throw new Error('No hay conexión con el servidor. Inicia la API (uvicorn main:app --reload).');
+    const d = await api(modoReg ? '/registro' : '/login', {method: 'POST', body: JSON.stringify({nombre: $('aNombre').value, email: $('aMail').value, password: $('aPass').value})});
+    localStorage.setItem('altiora_token', d.token);
+    if (pendiente !== null) await api('/favoritos/' + pendiente, {method: 'PUT'});
+    pendiente = null; ME = await api('/me');
+    $('fAuth').reset(); $('dlgAuth').close(); renderAuth(true); pintarProg();
+  } catch (err) { msg.textContent = err.message; }
+  btn.disabled = false;
+};
+
+async function toggleFav(id) {
+  if (!ME) { pendiente = id; return abrirAuth(false); }
+  try {
+    await api('/favoritos/' + id, {method: guardado(id) ? 'DELETE' : 'PUT'});
+    ME = await api('/me'); renderAuth(); pintarProg();
+    if ($('dlgPanel').open) abrirPanel();
+  } catch (err) { alert(err.message); }
 }
+$('gridProg').onclick = e => { const b = e.target.closest('.save'); if (b) toggleFav(+b.dataset.id); };
 
-function confirmarCerrarSesion() {
-    localStorage.removeItem('altiora_sesion_activa');
-    location.reload();
+function abrirPanel() {
+  if (!ME) return;
+  $('pTitle').textContent = `Hola, ${ME.nombre}`;
+  $('pCiudad').innerHTML = ciudades.map(c => { const v = c === 'Todas' ? '' : c; return `<option value="${esc(v)}"${(ME.ciudad || '') === v ? ' selected' : ''}>${v ? esc(c) : 'Cualquier ciudad'}</option>`; }).join('');
+  const mios = P.filter(p => ME.favs.includes(p.id));
+  $('pList').innerHTML = mios.length ? mios.map(p => `<div class="fav"><div><b>${esc(p.nombre)}</b><br><small>${esc(p.inst)} · ${esc(p.ciudad)} · ${p.estado}</small>
+    ${F.filter(f => f.prog === p.id).map(f => `<div class="fin"><span class="tag">${esc(f.tipo)}</span> cubre ${f.pct}% · ${esc(f.quien)}</div>`).join('')}</div>
+    <button class="link" data-id="${p.id}">Quitar</button></div>`).join('')
+    : '<p class="vacio">Aún no guardas programas. Toca “Guardar” en cualquier programa y aparecerá aquí con sus becas y créditos.</p>';
+  if (!$('dlgPanel').open) $('dlgPanel').showModal();
 }
+$('pList').onclick = e => { const b = e.target.closest('button[data-id]'); if (b) toggleFav(+b.dataset.id); };
+$('pCiudad').onchange = async e => {
+  try { ME = await api('/me', {method: 'PUT', body: JSON.stringify({ciudad: e.target.value})}); fCiudad = ME.ciudad || 'Todas'; pintarProg(); }
+  catch (err) { alert(err.message); }
+};
 
-// ==========================================
-// NUEVAS FUNCIONES DE INSCRIPCIÓN Y MODAL
-// ==========================================
-function abrirFormularioInscripcion(universidad, programa) {
-    document.getElementById("modalUniversidad").value = universidad;
-    document.getElementById("modalPrograma").value = programa;
-    document.getElementById("infoProgramaSeleccionado").innerText = `Postulación a: ${programa} (${universidad})`;
-    document.getElementById("modalInscripcion").style.display = "flex";
-}
-
-function cerrarFormularioInscripcion() {
-    document.getElementById("modalInscripcion").style.display = "none";
-    document.getElementById("respuestaModal").innerText = "";
-}
-
-document.addEventListener("DOMContentLoaded", () => {
-    const formInscripcion = document.getElementById("formInscripcionModal");
-    if (formInscripcion) {
-        formInscripcion.addEventListener("submit", async function(e) {
-            e.preventDefault();
-
-            const datos = {
-                universidad: document.getElementById("modalUniversidad").value,
-                programa: document.getElementById("modalPrograma").value,
-                nombre: document.getElementById("nombreModal").value,
-                email: document.getElementById("emailModal").value,
-                whatsapp: document.getElementById("whatsappModal").value,
-                notif_email: document.getElementById("notifEmailModal").checked,
-                notif_whatsapp: document.getElementById("notifWpModal").checked
-            };
-
-            try {
-                const respuesta = await fetch("http://127.0.0.1:8000/api/inscripcion", {
-                    method: "POST",
-                    headers: { "Content-Type": "application/json" },
-                    body: JSON.stringify(datos)
-                });
-
-                const resultado = await respuesta.json();
-                const respDiv = document.getElementById("respuestaModal");
-                respDiv.style.color = "#166534";
-                respDiv.innerText = resultado.mensaje;
-
-                setTimeout(() => {
-                    cerrarFormularioInscripcion();
-                    formInscripcion.reset();
-                }, 2500);
-
-            } catch (error) {
-                const respDiv = document.getElementById("respuestaModal");
-                respDiv.style.color = "#dc2626";
-                respDiv.innerText = "Error de conexión con el backend FastAPI.";
-            }
-        });
-    }
-});
+cargar();

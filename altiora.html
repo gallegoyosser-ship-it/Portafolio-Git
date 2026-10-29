@@ -1,353 +1,86 @@
 <!DOCTYPE html>
 <html lang="es">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Altiora Edu — Oportunidades Académicas y Financieras</title>
-    <link rel="stylesheet" href="style.css">
-    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@500;600;700;800&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Altiora Edu · Programas, becas y créditos de educación superior en Colombia</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:wght@600;700;800&family=DM+Sans:wght@400;500;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="style.css">
 </head>
 <body>
+<nav><div class="wrap">
+  <a class="brand" href="#inicio"><img src="logo.png" alt="" onerror="this.style.display='none'">Altiora Edu</a>
+  <ul><li><a href="#programas">Programas</a></li><li><a href="#universidades">Universidades</a></li><li><a href="#financiacion">Becas y créditos</a></li><li><a href="#entidades">ICETEX y Sapiencia</a></li><li><a href="#guia">Guía</a></li></ul>
+  <div class="auth" id="authBox"></div>
+</div></nav>
 
-    <!-- PANTALLA DE CARGA INICIAL -->
-    <div id="screen-loading" class="splash-screen-container">
-        <div class="loading-center-content">
-            <div class="loading-ring-container">
-                <div class="loader-ring"><div></div><div></div><div></div><div></div></div>
-            </div>
-        </div>
+<header class="hero" id="inicio"><div class="wrap">
+  <h1>Encuentra qué estudiar y cómo pagarlo.</h1>
+  <p class="lead">Programas, universidades, becas y créditos de educación superior en Colombia, reunidos en un solo lugar.</p>
+  <form class="finder" onsubmit="event.preventDefault();location.hash='programas'" role="search">
+    <input id="q" type="search" placeholder="Escribe una carrera o universidad: Medicina, EAFIT, Ingeniería…" aria-label="Buscar carrera o universidad">
+    <a href="#programas">Ver resultados</a>
+  </form>
+  <div class="facts" id="facts"></div>
+</div></header>
+
+<main class="wrap">
+  <section id="programas">
+    <div class="sh"><h2>Programas académicos</h2><p>Filtra por ciudad y por el estado de la convocatoria.</p></div>
+    <div class="chips" id="chipsCiudad" aria-label="Ciudad"></div>
+    <div class="chips" id="chipsEstado" aria-label="Estado"></div>
+    <div class="grid" id="gridProg"></div>
+  </section>
+
+  <section id="universidades">
+    <div class="sh"><h2>Universidades e instituciones</h2><p>Todas las instituciones registradas, con sus datos de contacto.</p></div>
+    <div class="chips" id="chipsTipoU" aria-label="Tipo de institución"></div>
+    <div class="grid" id="gridUni"></div>
+  </section>
+
+  <section id="financiacion">
+    <div class="sh"><h2>Becas, subsidios y créditos</h2><p>Cuánto cuesta cada programa y qué porcentaje cubre cada apoyo.</p></div>
+    <div class="chips" id="chipsTipo"></div>
+    <div class="grid" id="gridFin"></div>
+  </section>
+
+  <section id="entidades">
+    <div class="sh"><h2>Entidades que financian tu estudio</h2><p>Además de las ofertas de arriba, estas entidades abren sus propias convocatorias.</p></div>
+    <div class="grid" id="gridEnt"></div>
+  </section>
+
+  <section id="guia">
+    <div class="sh"><h2>Cómo usar esta información</h2></div>
+    <div class="steps">
+      <div class="step"><h3>Elige un programa</h3><p>Compara requisitos y beneficios, y revisa las fechas de cierre de cada convocatoria.</p></div>
+      <div class="step"><h3>Verifica que sea legal</h3><p>Confirma que el programa esté activo y tenga registro calificado en el <a href="https://snies.mineducacion.gov.co" target="_blank" rel="noopener">SNIES</a> del Ministerio de Educación.</p></div>
+      <div class="step"><h3>Busca cómo pagarlo</h3><p>Revisa las becas y créditos de esta página, consulta <a href="https://portal.icetex.gov.co" target="_blank" rel="noopener">ICETEX</a> y <a href="https://www.sapiencia.gov.co" target="_blank" rel="noopener">Sapiencia</a>, y pregunta en la oficina de admisiones.</p></div>
     </div>
+  </section>
+</main>
 
-    <!-- PANTALLA DE BIENVENIDA -->
-    <div id="screen-welcome" class="welcome-screen-container" style="display: none;">
-        <div class="loading-center-content">
-            <h2 id="welcomeUserText">¡Bienvenido(a)!</h2>
-            <div class="loading-ring-container">
-                <div class="loader-ring"><div></div><div></div><div></div><div></div></div>
-            </div>
-        </div>
-    </div>
-
-    <!-- PANTALLA DE LOGIN / REGISTRO -->
-    <div id="screen-auth" class="google-auth-container" style="display: none;">
-        <div class="google-auth-box">
-            <div class="google-logo-header">
-                <img src="logo.png" alt="Logo Altiora Edu">
-                <span id="auth-title">Iniciar Sesión</span>
-                <p id="auth-subtitle">Ingresa con tu cuenta registrada</p>
-            </div>
-
-            <form id="authForm" onsubmit="manejarAccionAuth(event)">
-                <div id="nombreField" class="google-input-group" style="display: none;">
-                    <input type="text" id="regNombre" placeholder="Tu nombre completo">
-                </div>
-                <div class="google-input-group">
-                    <input type="email" id="authEmail" placeholder="Correo electrónico" required>
-                </div>
-                <div class="google-input-group">
-                    <input type="password" id="authPassword" placeholder="Contraseña" required>
-                </div>
-
-                <div class="auth-actions">
-                    <button type="button" class="btn-text" id="toggleAuthMode" onclick="cambiarModoAuth()">¿No tienes cuenta? Regístrate</button>
-                    <button type="submit" class="btn-google-primary" id="authSubmitBtn">Entrar</button>
-                </div>
-            </form>
-        </div>
-    </div>
-
-    <!-- MODAL DE CERRAR SESIÓN -->
-    <div id="logoutModal" class="modal-overlay" style="display: none;">
-        <div class="modal-box">
-            <div class="modal-icon-wrap">
-                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#DC2626" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"></path><polyline points="16 17 21 12 16 7"></polyline><line x1="21" y1="12" x2="9" y2="12"></line></svg>
-            </div>
-            <h3>¿Cerrar Sesión?</h3>
-            <p>Estás a punto de salir de tu sesión activa en Altiora Edu.</p>
-            <div class="modal-actions">
-                <button class="btn-modal-cancel" onclick="cancelarCerrarSesion()">Permanecer</button>
-                <button class="btn-modal-confirm" onclick="confirmarCerrarSesion()">Sí, salir</button>
-            </div>
-        </div>
-    </div>
-
-    <!-- APLICACIÓN PRINCIPAL -->
-    <div id="app-container" class="app-layout" style="display: none;">
-        
-        <!-- BARRA LATERAL -->
-        <aside class="sidebar">
-            <div class="logo-container">
-                <div class="logo-icon-box">
-                    <img src="logo.png" alt="Logo" class="brand-logo-img">
-                </div>
-                <div class="logo-text">
-                    <span class="brand-title">Altiora Edu</span>
-                    <span class="brand-subtitle" id="userRoleBadge">Rol: Estudiante</span>
-                </div>
-            </div>
-
-            <nav class="side-nav">
-                <a href="#programas" class="nav-item active" data-target="programas">
-                    <svg class="nav-svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"></path><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"></path></svg>
-                    <span class="nav-text">Oferta Académica</span>
-                </a>
-                <a href="#subsidios" class="nav-item" data-target="subsidios">
-                    <svg class="nav-svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2v20M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"></path></svg>
-                    <span class="nav-text">Ayudas & Cobertura</span>
-                </a>
-                <a href="#postulaciones" class="nav-item" data-target="postulaciones">
-                    <svg class="nav-svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2"></path><rect x="8" y="2" width="8" height="4" rx="1" ry="1"></rect><path d="M9 12h6"></path><path d="M9 16h6"></path></svg>
-                    <span class="nav-text">Mis Postulaciones & Historial</span>
-                </a>
-                <a href="#documentos" class="nav-item" data-target="documentos">
-                    <svg class="nav-svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline><line x1="16" y1="13" x2="8" y2="13"></line><line x1="16" y1="17" x2="8" y2="17"></line><polyline points="10 9 9 9 8 9"></polyline></svg>
-                    <span class="nav-text">Gestión Documental</span>
-                </a>
-                <a href="#informacion" class="nav-item" data-target="informacion">
-                    <svg class="nav-svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"></circle><line x1="12" y1="16" x2="12" y2="12"></line><line x1="12" y1="8" x2="12.01" y2="8"></line></svg>
-                    <span class="nav-text">Información general</span>
-                </a>
-            </nav>
-
-            <div class="sidebar-footer">
-                <a href="#" class="nav-item logout-link" onclick="solicitarCerrarSesion(event)">
-                    <svg class="nav-svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"></path><polyline points="16 17 21 12 16 7"></polyline><line x1="21" y1="12" x2="9" y2="12"></line></svg>
-                    <span class="nav-text">Cerrar Sesión</span>
-                </a>
-            </div>
-        </aside>
-
-        <!-- CONTENIDO PRINCIPAL -->
-        <main class="main-content">
-            
-            <!-- ENCABEZADO SUPERIOR CON NOTIFICACIONES -->
-            <div class="top-header-bar">
-                <div class="user-welcome-info">
-                    <h3 id="topUserName">Hola, Estudiante</h3>
-                    <p>Panel de control y seguimiento académico</p>
-                </div>
-                <div class="notifications-wrapper">
-                    <button class="notif-bell-btn" onclick="toggleNotificaciones()">
-                        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"></path><path d="M13.73 21a2 2 0 0 1-3.46 0"></path></svg>
-                        <span class="notif-badge" id="notifCount">0</span>
-                    </button>
-                    <div class="notif-dropdown" id="notifDropdown" style="display: none;">
-                        <h4>Notificaciones del Sistema</h4>
-                        <div id="notifListContainer"></div>
-                    </div>
-                </div>
-            </div>
-
-            <!-- MÉTRICAS EJECUTIVAS -->
-            <div class="metrics-grid">
-                <div class="metric-card">
-                    <span class="metric-label">Programas Disponibles</span>
-                    <span class="metric-value" id="statProgramas">--</span>
-                </div>
-                <div class="metric-card">
-                    <span class="metric-label">Ayudas Financieras</span>
-                    <span class="metric-value" id="statSubsidios">--</span>
-                </div>
-                <div class="metric-card">
-                    <span class="metric-label">Postulaciones Activas</span>
-                    <span class="metric-value" id="statPostulaciones">1</span>
-                </div>
-            </div>
-
-            <!-- SECCIÓN 1: OFERTA ACADÉMICA -->
-            <section id="section-programas" class="content-section active">
-                <div class="hero-header">
-                    <h2>Oferta Académica y Convocatorias de Pregrado</h2>
-                    <p style="margin-bottom: 1.5rem; color: #94A3B8;">Explora programas superiores vinculados a las instituciones de educación superior en Colombia.</p>
-                    
-                    <div class="location-filter-box" style="margin-bottom: 1.5rem;">
-                        <label for="ubicacionSelect" style="font-weight: 600; margin-right: 0.5rem;">Ciudad:</label>
-                        <select id="ubicacionSelect" onchange="filtrarProgramas()">
-                            <option value="todos">Toda Colombia (Nacional)</option>
-                            <option value="Medellín">Medellín</option>
-                            <option value="Bogotá">Bogotá D.C.</option>
-                            <option value="Cali">Cali</option>
-                        </select>
-                    </div>
-
-                    <div class="search-box">
-                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#64748B" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line></svg>
-                        <input type="text" id="searchInput" oninput="filtrarProgramas()" placeholder="Busca por carrera o institución...">
-                    </div>
-                </div>
-
-                <div class="cards-grid" id="programasGrid"></div>
-            </section>
-
-            <!-- SECCIÓN 2: AYUDAS & COBERTURA -->
-            <section id="section-subsidios" class="content-section">
-                <div class="hero-header">
-                    <h2>Ayudas, Créditos y Cobertura Financiera</h2>
-                    <p style="margin-bottom: 1.5rem; color: #94A3B8;">Detalles de costos totales, porcentajes cubiertos y prestamistas institucionales.</p>
-                </div>
-                <div class="cards-grid" id="subsidiosGrid"></div>
-            </section>
-
-            <!-- SECCIÓN 3: MIS POSTULACIONES & HISTORIAL -->
-            <section id="section-postulaciones" class="content-section">
-                <div class="hero-header">
-                    <h2>Mis Postulaciones y Trazabilidad de Estados</h2>
-                    <p style="margin-bottom: 1.5rem; color: #94A3B8;">Historial de cambios y seguimiento detallado de tus procesos.</p>
-                </div>
-                <div id="historialPostulacionesContainer"></div>
-            </section>
-
-            <!-- SECCIÓN 4: GESTIÓN DOCUMENTAL -->
-            <section id="section-documentos" class="content-section">
-                <div class="hero-header">
-                    <h2>Gestión Documental y Verificación de Requisitos</h2>
-                    <p style="margin-bottom: 1.5rem; color: #94A3B8;">Estado de tus soportes obligatorios cargados en el sistema.</p>
-                </div>
-                <div class="docs-table-card">
-                    <table class="styled-table">
-                        <thead>
-                            <tr>
-                                <th>Tipo de Documento</th>
-                                <th>Estado de Verificación</th>
-                                <th>Acción</th>
-                            </tr>
-                        </thead>
-                        <tbody id="documentosTableBody"></tbody>
-                    </table>
-                </div>
-            </section>
-
-            <!-- SECCIÓN 5: INFORMACIÓN GENERAL -->
-            <section id="section-informacion" class="content-section">
-                <div class="info-paper-box">
-                    
-                    <header class="info-paper-header">
-                        <h2>Información General</h2>
-                        <p class="info-lead">
-                            Altiora Edu es una plataforma web desarrollada para centralizar, organizar y facilitar el acceso a la educación superior en Colombia, unificando la oferta de programas académicos de pregrado y tecnologías con los distintos programas de apoyo socioeconómico (becas, créditos condonables y subsidios de sostenimiento).
-                        </p>
-                    </header>
-
-                    <hr class="paper-divider">
-
-                    <article class="info-paper-section">
-                        <h3>Propósito de la Plataforma</h3>
-                        <p>
-                            El acceso a la educación superior en el país suele verse limitado no solo por factores económicos, sino por la dispersión de la información. Procesos como las inscripciones a universidades públicas, las convocatorias de Sapiencia en Medellín, los créditos condonables del ICETEX o los subsidios de transporte y alimentación del SENA se gestionan en portales independientes. Altiora Edu reúne estas oportunidades en un sistema de consulta único con fechas e instancias claras.
-                        </p>
-                    </article>
-
-                    <hr class="paper-divider">
-
-                    <article class="info-paper-section">
-                        <h3>¿Qué puedes consultar en Altiora Edu?</h3>
-                        <ul class="paper-list">
-                            <li><strong>Oferta Académica:</strong> Carreras profesionales, ingenierías y tecnologías en instituciones públicas y privadas con inscripciones vigentes.</li>
-                            <li><strong>Subsidios de Permanencia:</strong> Programas que cubren gastos de alimentación, transporte, alojamiento, libros y materiales de estudio.</li>
-                            <li><strong>Fondos y Becas Condonables:</strong> Apoyos de matrícula cero, becas de excelencia y líneas de crédito condonable.</li>
-                            <li><strong>Oportunidades Internacionales:</strong> Becas de posgrado, pasantías y programas de cooperación académica en el exterior.</li>
-                        </ul>
-                    </article>
-
-                    <hr class="paper-divider">
-
-                    <article class="info-paper-section">
-                        <h3>Entidades, Programas y Alianzas Vinculadas</h3>
-                        <p>
-                            La plataforma articula la información pública e institucional de diversas entidades encargadas del fomento educativo en Colombia y el extranjero:
-                        </p>
-                        
-                        <div class="alliances-columns">
-                            <div class="alliance-col">
-                                <h4>Gubernamentales y Territoriales</h4>
-                                <ul class="paper-list-small">
-                                    <li>Sapiencia (Agencia de Educación Superior de Medellín)</li>
-                                    <li>Alcaldías locales y Presupuesto Participativo</li>
-                                    <li>Ministerio de Educación Nacional (MEN)</li>
-                                    <li>ICETEX (Créditos y becas condonables)</li>
-                                    <li>SENA (Formación gratuita y apoyos de sostenimiento)</li>
-                                </ul>
-                            </div>
-
-                            <div class="alliance-col">
-                                <h4>Universidades y Sector Privado</h4>
-                                <ul class="paper-list-small">
-                                    <li>Instituciones de Educación Superior (IES) públicas y privadas (UdeA, UNAL, ITM, EAFIT)</li>
-                                    <li>Programa Generación E</li>
-                                    <li>Fundaciones y Cajas de Compensación</li>
-                                </ul>
-                            </div>
-
-                            <div class="alliance-col">
-                                <h4>Cooperación Internacional</h4>
-                                <ul class="paper-list-small">
-                                    <li>COLFUTURO (Crédito Beca de posgrado)</li>
-                                    <li>Becas DAAD (Alemania)</li>
-                                    <li>Fulbright Colombia y Convenios de Movilidad</li>
-                                </ul>
-                            </div>
-                        </div>
-                    </article>
-
-                    <hr class="paper-divider">
-
-                    <div class="info-mv-clean">
-                        <div class="mv-clean-item">
-                            <h3>Misión</h3>
-                            <p>Promover la equidad en el acceso a la educación superior mediante una herramienta web clara, accesible y actualizada que conecte a los estudiantes colombianos con las oportunidades académicas y ayudas socioeconómicas disponibles.</p>
-                        </div>
-                        <div class="mv-clean-item">
-                            <h3>Visión</h3>
-                            <p>Consolidarse como un portal de referencia estudiantil en Colombia para la consulta de convocatorias, orientación de admisiones y fortalecimiento de la permanencia académica universitaria.</p>
-                        </div>
-                    </div>
-
-                </div>
-            </section>
-        </main>
-    </div>
-
-    <!-- MODAL FLOTANTE DE INSCRIPCIÓN Y POSTULACIÓN -->
-    <div id="modalInscripcion" class="modal-overlay" style="display: none;">
-        <div class="modal-box">
-            <span class="close-btn" onclick="cerrarFormularioInscripcion()">&times;</span>
-            <h3>Formulario de Postulación</h3>
-            <p id="infoProgramaSeleccionado"></p>
-
-            <form id="formInscripcionModal">
-                <input type="hidden" id="modalUniversidad" name="universidad">
-                <input type="hidden" id="modalPrograma" name="programa">
-
-                <div class="google-input-group">
-                    <label>Nombre Completo:</label>
-                    <input type="text" id="nombreModal" placeholder="Tu nombre completo" required>
-                </div>
-
-                <div class="google-input-group">
-                    <label>Correo Electrónico:</label>
-                    <input type="email" id="emailModal" placeholder="correo@ejemplo.com" required>
-                </div>
-
-                <div class="google-input-group">
-                    <label>Número de WhatsApp:</label>
-                    <input type="tel" id="whatsappModal" placeholder="+57 3001234567" required>
-                </div>
-
-                <div class="notif-box">
-                    <label class="notif-label">¿Deseas recibir alertas de estado?</label>
-                    <input type="checkbox" id="notifEmailModal" checked> <label for="notifEmailModal">Por Correo Electrónico</label><br>
-                    <input type="checkbox" id="notifWpModal" checked> <label for="notifWpModal">Por WhatsApp</label>
-                </div>
-
-                <button type="submit" class="btn-google-primary">
-                    Confirmar y Enviar Inscripción
-                </button>
-            </form>
-            <div id="respuestaModal" class="respuesta-modal"></div>
-        </div>
-    </div>
-
-    <!-- SCRIPT PRINCIPAL EXCLUSIVO -->
-    <script src="altiora.js"></script>
+<footer><div class="wrap"><b>Altiora Edu</b> · La información es de referencia. Confirma fechas, requisitos y costos en el sitio oficial de cada institución antes de inscribirte.</div></footer>
+<dialog id="dlgAuth" aria-labelledby="aTitle">
+  <button class="x" type="button" aria-label="Cerrar" onclick="this.closest('dialog').close()">×</button>
+  <h2 id="aTitle">Iniciar sesión</h2>
+  <p class="sub" id="aSub">Entra para guardar tus programas favoritos.</p>
+  <form id="fAuth">
+    <label id="lNombre" hidden>Nombre<input id="aNombre" autocomplete="name"></label>
+    <label>Correo electrónico<input id="aMail" type="email" required autocomplete="email"></label>
+    <label>Contraseña<input id="aPass" type="password" minlength="8" required autocomplete="current-password"></label>
+    <p id="aMsg" role="alert"></p>
+    <button class="btn" id="aBtn">Entrar</button>
+  </form>
+  <button class="link" id="aToggle" type="button">¿No tienes cuenta? Regístrate</button>
+</dialog>
+<dialog id="dlgPanel" aria-labelledby="pTitle">
+  <button class="x" type="button" aria-label="Cerrar" onclick="this.closest('dialog').close()">×</button>
+  <h2 id="pTitle">Mi panel</h2>
+  <label class="pref">Ciudad que más te interesa<select id="pCiudad"></select></label>
+  <h3>Programas guardados</h3>
+  <div id="pList"></div>
+</dialog>
+<script src="altiora.js"></script>
 </body>
 </html>

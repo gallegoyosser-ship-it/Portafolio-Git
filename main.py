@@ -1,131 +1,152 @@
-from fastapi import FastAPI, WebSocket
-from fastapi.middleware.cors import CORSMiddleware
-from pydantic import BaseModel
-import sqlite3
+"""API de Altiora Edu. Ejecutar:  uvicorn main:app --reload  (puerto 8000)"""
 import os
-from src.routes.auth_routes import auth_router
+import datetime as dt
+import bcrypt, jwt, pymysql
+from fastapi import Depends, FastAPI, Header, HTTPException
+from fastapi.middleware.cors import CORSMiddleware
+from pydantic import BaseModel, Field
+
+SECRET = os.getenv("JWT_SECRET", "cambia-esto-en-produccion")
+app = FastAPI(title="Altiora Edu API")
+# Solo para desarrollo: acepta la página desde localhost. En producción pon tu dominio.
+app.add_middleware(CORSMiddleware, allow_origin_regex=r"http://(localhost|127\.0\.0\.1)(:\d+)?",
+                   allow_methods=["*"], allow_headers=["*"])
 
 
-# 1. Inicialización de la aplicación FastAPI
-app = FastAPI(
-    title="API Altiora Edu",
-    description="Backend para la plataforma de educación superior y becas",
-    version="1.0.0"
-)
+def conexion():
+    return pymysql.connect(host=os.getenv("DB_HOST", "127.0.0.1"), user=os.getenv("DB_USER", "root"),
+                           password=os.getenv("DB_PASS", ""), database=os.getenv("DB_NAME", "altiora-edu"),
+                           charset="utf8mb4", cursorclass=pymysql.cursors.DictCursor, autocommit=True)
 
-# Incluimos el router en la app principal
-app.include_router(auth_router, prefix="/auth", tags=["auth"])
 
-# 2. Configuración de CORS (Permite solicitudes desde tu frontend/HTML)
-app.add_middleware(
-    CORSMiddleware,
-    allow_origins=["*"],
-    allow_credentials=True,
-    allow_methods=["*"],
-    allow_headers=["*"],
-)
-
-# 3. Modelos Pydantic para validación de datos
-class Item(BaseModel):
-    name: str
-    age: int
-
-class InscripcionRequest(BaseModel):
-    universidad: str
-    programa: str
-    nombre: str
-    email: str
-    whatsapp: str
-    notif_email: bool
-    notif_whatsapp: bool
-
-# 4. Eventos de inicio y cierre de la aplicación
-@app.on_event("startup")
-async def startup_event():
-    print("La aplicación Altiora Edu está arrancando...")
-
-@app.on_event("shutdown")
-async def shutdown_event():
-    print("La aplicación Altiora Edu se está cerrando...")
-
-# 5. Rutas HTTP principales
-@app.get('/')
-async def read_root():
-    return {"message": "hello world"}
-
-@app.get('/api/convocatorias')
-async def obtener_convocatorias():
-    db = sqlite3.connect("items.db")
-    cursor = db.cursor()
-    db.close()
-
-    datos_ejemplo = [
-        {
-            "institucion": "ITM (Inst. Tecnológico Metropolitano)",
-            "ciudad": "Medellín",
-            "programa": "Tecnología en Desarrollo de Software",
-            "inicio": "1 de Octubre de 2026",
-            "cierre": "30 de Noviembre de 2026"
-        },
-        {
-            "institucion": "Universidad EAFIT",
-            "ciudad": "Medellín",
-            "programa": "Ingeniería de Sistemas",
-            "inicio": "15 de Septiembre de 2026",
-            "cierre": "15 de Diciembre de 2026"
-        }
-    ]
-    return {"convocatorias": datos_ejemplo}
-
-# Endpoint para recibir las postulaciones desde la página web
-@app.post('/api/inscripcion')
-async def registrar_inscripcion(datos: InscripcionRequest):
-    # Opcional: Guardar el registro en tu base de datos SQLite (items.db)
-    db = sqlite3.connect("items.db")
-    cursor = db.cursor()
-    # Asegúrate de tener una tabla creada para inscripciones si deseas almacenarlas de forma permanente
-    db.close()
-
-    print(f"\n[NUEVA INSCRIPCIÓN RECIBIDA]")
-    print(f"Estudiante: {datos.nombre} | Institución: {datos.universidad} | Programa: {datos.programa}")
-
-    if datos.notif_email:
-        print(f"--> [SIMULACIÓN EMAIL] Enviado a {datos.email}")
-    if datos.notif_whatsapp:
-        print(f"--> [SIMULACIÓN WHATSAPP] Enviado al {datos.whatsapp}")
-
-    return {
-        "status": "exito",
-        "mensaje": f"¡Inscripción registrada con éxito para {datos.nombre}! Te notificaremos los avances."
-    }
-
-@app.post('/items')
-async def create_item(item: Item):
-    db = sqlite3.connect("items.db")
-    cursor = db.cursor()
-    db.close()
-    return {"item": item, "name": item.name, "age": item.age}
-
-# 6. Ejemplo de ruta de autenticación integrada
-@app.post('/auth/login')
-async def login():
-    return {"message": "Login exitoso"}
-
-# 7. Configuración de WebSockets para tiempo real
-connected_clients = []
-
-@app.websocket("/ws")
-async def websocket_endpoint(websocket: WebSocket):
-    await websocket.accept()
-    connected_clients.append(websocket)
+def consulta(sql, args=(), uno=False):
+    con = conexion()
     try:
-        while True:
-            data = await websocket.receive_text()
-    except Exception:
-        connected_clients.remove(websocket)
+        with con.cursor() as cur:
+            cur.execute(sql, args)
+            return cur.fetchone() if uno else cur.fetchall()
+    finally:
+        con.close()
 
-# 8. Punto de entrada para ejecutar la API con Uvicorn
-if __name__ == "__main__":
-    import uvicorn
-    port = int(os.getenv("PORT", 8000))
-    uvicorn.run(app, host="0.0.0.0", port=port)
+
+def ejecutar(sql, args=()):
+    con = conexion()
+    try:
+        with con.cursor() as cur:
+            cur.execute(sql, args)
+            return cur.lastrowid
+    finally:
+        con.close()
+
+
+def token(uid):
+    return jwt.encode({"sub": str(uid), "exp": dt.datetime.now(dt.timezone.utc) + dt.timedelta(days=7)}, SECRET, "HS256")
+
+
+def usuario_actual(authorization: str = Header(None)):
+    try:
+        return int(jwt.decode((authorization or "").removeprefix("Bearer "), SECRET, algorithms=["HS256"])["sub"])
+    except Exception:
+        raise HTTPException(401, "Tu sesión venció. Inicia sesión de nuevo.")
+
+
+def perfil(uid):
+    u = consulta("SELECT nombre_completo, email, ciudad_interes FROM usuarios_sistema WHERE id_usuario=%s", (uid,), True)
+    if not u:
+        raise HTTPException(401, "Usuario no encontrado.")
+    favs = [r["id_programa"] for r in consulta("SELECT id_programa FROM favoritos_usuario WHERE id_usuario=%s", (uid,))]
+    return {"nombre": u["nombre_completo"] or u["email"], "email": u["email"], "ciudad": u["ciudad_interes"] or "", "favs": favs}
+
+
+# ---------- Catálogo público (misma forma que altiora.json) ----------
+@app.get("/api/catalogo")
+def catalogo():
+    instituciones = consulta("""
+        SELECT i.id_universidadinstitucion AS id, i.nombre, t.tipo,
+               COALESCE(u.ciudad, u.municipio, '') AS ciudad,
+               c.contacto_telefono AS tel, c.contacto_email AS mail
+        FROM institucion_educacion_superior i
+        JOIN tipo_institucion t ON t.id_tipo = i.id_tipo
+        LEFT JOIN contacto_universidadinstitucion c ON c.id_universidadinstitucion = i.id_universidadinstitucion
+        LEFT JOIN ubicacion_universidadinstitucio u ON u.id_ubicacion =
+             (SELECT MIN(id_ubicacion) FROM ubicacion_universidadinstitucio WHERE id_universidadinstitucion = i.id_universidadinstitucion)
+        ORDER BY i.nombre""")
+    programas = consulta("""
+        SELECT id_programa AS id, id_universidadinstitucion AS ies, nombre_programa AS nombre, tipo_programa AS tipo,
+               fecha_inicio AS ini, fecha_fin AS fin, requisitos AS req, beneficios AS ben FROM tipo_programa""")
+    cobertura = consulta("""
+        SELECT c.id_programa AS prog,
+               CASE WHEN p.tipo_prestamista = 'Persona' THEN 'Prestamista particular' ELSE p.nombre_institucional END AS quien,
+               c.tipo_beca_credito AS tipo, c.costo_total AS costo, c.porcentaje_cubierto AS pct,
+               CONCAT_WS(' · ', c.duracion_beca, c.plazo_credito) AS dur, c.notas
+        FROM cobertura c JOIN prestamista p ON p.id_prestamista = c.id_prestamista""")
+    for c in cobertura:
+        c["costo"], c["pct"] = float(c["costo"]), round(float(c["pct"]) * 100)
+    return {"instituciones": instituciones, "programas": programas, "cobertura": cobertura}
+
+
+# ---------- Cuentas ----------
+class Registro(BaseModel):
+    nombre: str = Field(min_length=1, max_length=100)
+    email: str = Field(max_length=100)
+    password: str = Field(min_length=8, max_length=72)
+
+
+class Login(BaseModel):
+    email: str
+    password: str
+
+
+@app.post("/api/registro")
+def registro(d: Registro):
+    email = d.email.strip().lower()
+    if "@" not in email:
+        raise HTTPException(400, "Escribe un correo válido.")
+    if consulta("SELECT 1 FROM usuarios_sistema WHERE email=%s", (email,), True):
+        raise HTTPException(409, "Ese correo ya tiene cuenta. Inicia sesión.")
+    h = bcrypt.hashpw(d.password.encode(), bcrypt.gensalt()).decode()
+    uid = ejecutar("INSERT INTO usuarios_sistema (username, password_hash, email, id_rol, is_active, nombre_completo) "
+                   "VALUES (%s,%s,%s,2,1,%s)", (email, h, email, d.nombre.strip()))
+    return {"token": token(uid), "user": perfil(uid)}
+
+
+@app.post("/api/login")
+def login(d: Login):
+    u = consulta("SELECT id_usuario, password_hash, is_active FROM usuarios_sistema WHERE email=%s", (d.email.strip().lower(),), True)
+    try:
+        ok = bool(u) and u["is_active"] and bcrypt.checkpw(d.password.encode(), u["password_hash"].encode())
+    except ValueError:  # contraseñas antiguas sin bcrypt
+        ok = False
+    if not ok:
+        raise HTTPException(401, "Correo o contraseña incorrectos.")
+    return {"token": token(u["id_usuario"]), "user": perfil(u["id_usuario"])}
+
+
+@app.get("/api/me")
+def me(uid: int = Depends(usuario_actual)):
+    return perfil(uid)
+
+
+class Ajustes(BaseModel):
+    ciudad: str = Field(default="", max_length=50)
+
+
+@app.put("/api/me")
+def ajustes(d: Ajustes, uid: int = Depends(usuario_actual)):
+    ejecutar("UPDATE usuarios_sistema SET ciudad_interes=%s WHERE id_usuario=%s", (d.ciudad or None, uid))
+    return perfil(uid)
+
+
+# ---------- Preferencias (programas guardados) ----------
+@app.put("/api/favoritos/{pid}")
+def guardar(pid: int, uid: int = Depends(usuario_actual)):
+    if not consulta("SELECT 1 FROM tipo_programa WHERE id_programa=%s", (pid,), True):
+        raise HTTPException(404, "Ese programa no existe.")
+    ejecutar("INSERT IGNORE INTO favoritos_usuario (id_usuario, id_programa, fecha_agregado) VALUES (%s,%s,CURDATE())", (uid, pid))
+    return {"ok": True}
+
+
+@app.delete("/api/favoritos/{pid}")
+def quitar(pid: int, uid: int = Depends(usuario_actual)):
+    ejecutar("DELETE FROM favoritos_usuario WHERE id_usuario=%s AND id_programa=%s", (uid, pid))
+    return {"ok": True}

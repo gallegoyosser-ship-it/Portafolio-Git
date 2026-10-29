@@ -1,94 +1,58 @@
 {
-  "usuario_actual": {
-    "nombre": "",
-    "username": "",
-    "rol": "Estudiante",
-    "email": ""
-  },
-  "notificaciones": [
-    {
-      "id": 1,
-      "mensaje": "¡Felicidades! Tu postulación a Biología ha sido Aceptada.",
-      "fecha": "2026-04-20",
-      "estado": "Leído"
-    },
-    {
-      "id": 2,
-      "mensaje": "Tu postulación a Ing. Civil está en revisión técnica.",
-      "fecha": "2026-04-16",
-      "estado": "No leído"
-    }
-  ],
-  "documentos_soporte": [
-    {"tipo": "Cédula de Ciudadanía", "estado": "Verificado", "url": "#"},
-    {"tipo": "Pruebas ICFES Saber 11", "estado": "Verificado", "url": "#"}
-  ],
-  "programas": [
-    {
-      "id": 6,
-      "institucion": "Universidad de Antioquia",
-      "nombre": "Biología",
-      "tipo": "Pregrado",
-      "ciudad": "Medellín",
-      "estado": "Abierta",
-      "cierre": "2026-06-01",
-      "requisitos": "Examen de admisión propio",
-      "beneficios": "Matrícula según estrato (puede ser $0)."
-    },
-    {
-      "id": 7,
-      "institucion": "Universidad Nacional de Colombia",
-      "nombre": "Ingeniería Civil",
-      "tipo": "Pregrado",
-      "ciudad": "Bogotá",
-      "estado": "Abierta",
-      "cierre": "2026-07-01",
-      "requisitos": "Puntaje en examen UNAL",
-      "beneficios": "Acceso a comedores y movilidad nacional"
-    },
-    {
-      "id": 10,
-      "institucion": "Instituto Tecnológico Metropolitano",
-      "nombre": "Ing. Mecatrónica",
-      "tipo": "Pregrado",
-      "ciudad": "Medellín",
-      "estado": "Próxima",
-      "cierre": "2026-06-30",
-      "requisitos": "Pruebas ICFES y validación de estrato",
-      "beneficios": "Presupuesto para proyectos de robótica"
-    }
-  ],
-  "subsidios": [
-    {
-      "id": 1,
-      "nombre": "Beca Excelencia Académica UdeA",
-      "tipo": "Matrícula",
-      "prestamista": "Universidad de Antioquia",
-      "costo_total": "$4.500.000",
-      "porcentaje_cubierto": "100%",
-      "duracion": "10 semestres",
-      "notas": "Beca por excelencia académica UdeA."
-    },
-    {
-      "id": 2,
-      "nombre": "Crédito Condonable ICETEX-UNAL",
-      "tipo": "Matrícula",
-      "prestamista": "ICETEX",
-      "costo_total": "$12.000.000",
-      "porcentaje_cubierto": "80%",
-      "plazo": "60 meses",
-      "notas": "Crédito condonable por rendimiento académico."
-    }
-  ],
-  "mis_postulaciones": [
-    {
-      "programa": "Biología",
-      "institucion": "Universidad de Antioquia",
-      "estado_actual": "Aceptada",
-      "historial": [
-        {"estado": "En revisión", "fecha": "2026-04-15", "motivo": "Cargue inicial web."},
-        {"estado": "Aceptada", "fecha": "2026-04-15", "motivo": "Puntaje de admisión válido y documentos verificados."}
-      ]
-    }
-  ]
+"instituciones":[
+{"id":1,"sig":"EAFIT","nombre":"Universidad EAFIT","tipo":"Universidad","ciudad":"Medellín","web":"https://www.eafit.edu.co","tel":"+57 (604) 261 9500","mail":"comunicacion@eafit.edu.co","img":"img/eafit.jpg"},
+{"id":2,"sig":"Pascual Bravo","nombre":"Pascual Bravo","tipo":"Institución Universitaria","ciudad":"Medellín","web":"https://www.pascualbravo.edu.co","tel":"+57 (604) 448 0520","mail":"cis@pascualbravo.edu.co","img":"img/pascualbravo.jpg"},
+{"id":3,"sig":"Uniandes","nombre":"Universidad de los Andes","tipo":"Universidad","ciudad":"Bogotá","web":"https://uniandes.edu.co","tel":"+57 (601) 339 4949","mail":"contacto@uniandes.edu.co","img":"img/uniandes.jpg"},
+{"id":4,"sig":"UdeM","nombre":"Universidad de Medellín","tipo":"Universidad","ciudad":"Medellín","web":"https://udemedellin.edu.co","tel":"+57 (604) 590 4500","mail":"udem@udem.edu.co","img":"img/udem.jpg"},
+{"id":5,"sig":"Javeriana","nombre":"Pontificia Universidad Javeriana","tipo":"Universidad","ciudad":"Bogotá","web":"https://www.javeriana.edu.co","tel":"+57 (601) 320 8320","mail":"contacto@javeriana.edu.co","img":"img/javeriana.jpg"},
+{"id":6,"sig":"UdeA","nombre":"Universidad de Antioquia","tipo":"Universidad","ciudad":"Medellín","web":"https://www.udea.edu.co","tel":"+57 (604) 219 8332","mail":"atencionalciudadano@udea.edu.co","img":"img/udea.jpg"},
+{"id":7,"sig":"UNAL","nombre":"Universidad Nacional de Colombia","tipo":"Universidad","ciudad":"Bogotá","web":"https://unal.edu.co","tel":"+57 (601) 316 5000","mail":"info@unal.edu.co","img":"img/unal.jpg"},
+{"id":8,"sig":"Univalle","nombre":"Universidad del Valle","tipo":"Universidad","ciudad":"Cali","web":"https://www.univalle.edu.co","tel":"+57 (602) 321 2100","mail":"atencionalciudadano@univalle.edu.co","img":"img/univalle.jpg"},
+{"id":9,"sig":"UIS","nombre":"Universidad Industrial de Santander","tipo":"Universidad","ciudad":"Bucaramanga","web":"https://www.uis.edu.co","tel":"+57 (607) 634 4000","mail":"uis@uis.edu.co","img":"img/uis.jpg"},
+{"id":10,"sig":"ITM","nombre":"Instituto Tecnológico Metropolitano","tipo":"Institución Universitaria","ciudad":"Medellín","web":"https://www.itm.edu.co","tel":"+57 (604) 440 5100","mail":"contactenos@itm.edu.co","img":"img/itm.jpg"},
+{"id":11,"sig":"Sabana","nombre":"Universidad de La Sabana","tipo":"Universidad","ciudad":"Chía","web":"https://www.unisabana.edu.co","tel":"+57 (601) 861 5555","mail":"admisiones@unisabana.edu.co","img":"img/unisabana.jpg"},
+{"id":12,"sig":"Rosario","nombre":"Universidad del Rosario","tipo":"Universidad","ciudad":"Bogotá","web":"https://www.urosario.edu.co","tel":"+57 (601) 297 0200","mail":"atencionalusuario@urosario.edu.co","img":"img/urosario.jpg"},
+{"id":13,"sig":"Externado","nombre":"Universidad Externado de Colombia","tipo":"Universidad","ciudad":"Bogotá","web":"https://www.uexternado.edu.co","tel":"+57 (601) 342 0288","mail":"admisiones@uexternado.edu.co","img":"img/uexternado.jpg"},
+{"id":14,"sig":"UTP","nombre":"Universidad Tecnológica de Pereira","tipo":"Universidad","ciudad":"Pereira","web":"https://www.utp.edu.co","tel":"+57 (606) 313 7300","mail":"contactenos@utp.edu.co","img":"img/utp.jpg"},
+{"id":15,"sig":"UPB","nombre":"Universidad Pontificia Bolivariana","tipo":"Universidad","ciudad":"Medellín","web":"https://www.upb.edu.co","tel":"+57 (604) 448 8388","mail":"infoupb@upb.edu.co","img":"img/upb.jpg"}
+],
+"programas":[
+{"id":1,"ies":1,"nombre":"Negocios Internacionales","tipo":"Pregrado","ini":"2026-01-01","fin":"2026-06-01","req":"Entrevista y Saber 11","ben":"Prácticas en empresas multinacionales."},
+{"id":2,"ies":2,"nombre":"Tecnología Mecánica","tipo":"Tecnología","ini":"2026-02-01","fin":"2026-06-01","req":"Bachiller y pruebas ICFES","ben":"Enfoque práctico hacia la industria 4.0"},
+{"id":3,"ies":3,"nombre":"Administración","tipo":"Pregrado","ini":"2026-01-01","fin":"2026-05-01","req":"Resultados Saber 11 (ICFES)","ben":"Red de contactos (networking) élite."},
+{"id":4,"ies":4,"nombre":"Comunicación y Lenguajes Audiovisuales","tipo":"Pregrado","ini":"2026-02-01","fin":"2026-06-01","req":"Acta de grado y entrevista","ben":"Canal de televisión propio para prácticas"},
+{"id":5,"ies":5,"nombre":"Psicología","tipo":"Pregrado","ini":"2026-01-01","fin":"2026-05-01","req":"Entrevista y resultados ICFES","ben":"Enfoque humano y prácticas clínicas"},
+{"id":6,"ies":6,"nombre":"Biología","tipo":"Pregrado","ini":"2026-02-01","fin":"2026-06-01","req":"Examen de admisión propio","ben":"Matrícula según estrato (puede ser $0)."},
+{"id":7,"ies":7,"nombre":"Ingeniería Civil","tipo":"Pregrado","ini":"2026-03-01","fin":"2026-07-01","req":"Puntaje en examen UNAL","ben":"Acceso a comedores y movilidad nacional"},
+{"id":8,"ies":8,"nombre":"Medicina","tipo":"Pregrado","ini":"2026-02-01","fin":"2026-06-01","req":"Alto puntaje en el ICFES","ben":"Prestigio en el sector salud público"},
+{"id":9,"ies":9,"nombre":"Ingeniería de Petróleos","tipo":"Pregrado","ini":"2026-02-01","fin":"2026-06-01","req":"Pruebas Saber 11","ben":"Laboratorios de investigación únicos"},
+{"id":10,"ies":10,"nombre":"Ingeniería Mecatrónica","tipo":"Pregrado","ini":"2026-02-01","fin":"2026-06-01","req":"Pruebas ICFES y validación de estrato","ben":"Presupuesto para proyectos de robótica"},
+{"id":11,"ies":11,"nombre":"Gastronomía","tipo":"Pregrado","ini":"2026-01-15","fin":"2026-05-20","req":"Entrevista técnica de cocina","ben":"Cocinas con estándares internacionales"},
+{"id":12,"ies":12,"nombre":"Jurisprudencia / Derecho","tipo":"Pregrado","ini":"2026-02-01","fin":"2026-06-15","req":"Ensayo argumentativo y entrevista","ben":"Prácticas en las altas cortes de Colombia"},
+{"id":13,"ies":13,"nombre":"Economía","tipo":"Pregrado","ini":"2026-01-20","fin":"2026-05-30","req":"Examen matemático selectivo","ben":"Doble titulación internacional opcional"},
+{"id":14,"ies":14,"nombre":"Ingeniería de Sistemas","tipo":"Pregrado","ini":"2026-02-10","fin":"2026-06-20","req":"Puntaje ICFES destacado en matemáticas","ben":"Semilleros activos en Inteligencia Artificial"},
+{"id":15,"ies":15,"nombre":"Diseño Gráfico","tipo":"Pregrado","ini":"2026-01-10","fin":"2026-05-15","req":"Presentación de portafolio creativo","ben":"Talleres de diseño editorial avanzados"}
+],
+"cobertura":[
+{"prog":6,"quien":"Universidad de Antioquia","tipo":"Beca","costo":4500000,"pct":100,"dur":"10 semestres","notas":"Beca por excelencia académica UdeA."},
+{"prog":7,"quien":"Prestamista particular","tipo":"Crédito","costo":12000000,"pct":80,"dur":"60 meses","notas":"Crédito condonable ICETEX-UNAL."},
+{"prog":3,"quien":"Soluciones Financieras S.A.S.","tipo":"Crédito","costo":25000000,"pct":100,"dur":"72 meses","notas":"Interés preferencial para posgrado."},
+{"prog":1,"quien":"Inversiones del Norte S.A.","tipo":"Beca-Crédito","costo":18500000,"pct":50,"dur":"8 semestres de beca · 48 meses de crédito","notas":"Condonable si el promedio es mayor a 4.0."},
+{"prog":15,"quien":"Prestamista particular","tipo":"Beca","costo":15000000,"pct":100,"dur":"9 semestres","notas":"Convenio con empresa privada."},
+{"prog":8,"quien":"Universidad Nacional","tipo":"Crédito","costo":32000000,"pct":70,"dur":"120 meses","notas":"Garantía hipotecaria familiar."},
+{"prog":9,"quien":"Coofinep","tipo":"Beca","costo":5200000,"pct":100,"dur":"10 semestres","notas":"Apoyo cooperativo para asociados."},
+{"prog":5,"quien":"Prestamista particular","tipo":"Crédito","costo":14000000,"pct":100,"dur":"36 meses","notas":"Préstamo personal para matrícula."},
+{"prog":10,"quien":"CrediPronto Ltda.","tipo":"Crédito","costo":3800000,"pct":100,"dur":"12 meses","notas":"Crédito rápido de ciclo corto."},
+{"prog":11,"quien":"Holding Educativa Global","tipo":"Beca-Crédito","costo":16000000,"pct":60,"dur":"8 semestres de beca · 60 meses de crédito","notas":"Financiación directa flexible."},
+{"prog":2,"quien":"Universidad EAFIT","tipo":"Beca","costo":8500000,"pct":100,"dur":"6 semestres","notas":"Beca Talento de la industria regional."},
+{"prog":12,"quien":"Prestamista particular","tipo":"Crédito","costo":22000000,"pct":90,"dur":"84 meses","notas":"Línea de crédito educativo de largo plazo."},
+{"prog":13,"quien":"Prestamista particular","tipo":"Crédito","costo":19000000,"pct":50,"dur":"48 meses","notas":"Pagaré con respaldo de codeudor."},
+{"prog":14,"quien":"Capital Semilla Co.","tipo":"Beca","costo":11000000,"pct":100,"dur":"10 semestres","notas":"Fondo de desarrollo tecnológico de software."},
+{"prog":4,"quien":"ITM","tipo":"Beca-Crédito","costo":13500000,"pct":75,"dur":"8 semestres de beca · 36 meses de crédito","notas":"Convenio Alcaldía Municipal."}
+],
+"entidades":[
+{"nombre":"ICETEX","ambito":"Nacional","desc":"Entidad del Estado que ofrece créditos educativos y becas para estudiar en Colombia y en el exterior.","web":"https://portal.icetex.gov.co"},
+{"nombre":"Sapiencia","ambito":"Medellín","desc":"Agencia de Educación Postsecundaria de Medellín: fondos, becas y créditos condonables para estudiar en la ciudad.","web":"https://www.sapiencia.gov.co"},
+{"nombre":"Colfuturo","ambito":"Exterior","desc":"Fundación que otorga crédito-beca para estudios de posgrado en el exterior.","web":"https://www.colfuturo.org"}
+]
 }
